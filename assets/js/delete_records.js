@@ -1,5 +1,4 @@
-ssets/js/delete_records.js</path>
-<content">// Script JavaScript para exclusão de lançamentos
+// Script JavaScript para exclusão de lançamentos
 
 let currentDeleteItem = null;
 let currentDeleteType = null;
