@@ -33,13 +33,15 @@ async function registerLocation() {
         }
 
         // Verificar se o código do local já existe
-        const { data: existingLocation, error: checkError } = await supabaseClient
+        const { data: existingLocations, error: checkError } = await supabaseClient
             .from('locations')
             .select('code')
             .eq('code', locationCode)
-            .single();
+            .limit(1);
 
-        if (existingLocation) {
+        if (checkError) throw checkError;
+
+        if (existingLocations && existingLocations.length > 0) {
             throw new Error('Este código de local já está cadastrado');
         }
 
