@@ -1,7 +1,7 @@
 // Script JavaScript para registro de usuários com Supabase
 
 // Função para registrar novo usuário
-async function registerUser(fullName, username, email, password, confirmPassword, role) {
+async function registerUser(fullName, username, password, confirmPassword, role) {
     try {
         // Validações básicas
         if (password !== confirmPassword) {
@@ -23,16 +23,7 @@ async function registerUser(fullName, username, email, password, confirmPassword
             throw new Error('Este nome de usuário já está em uso');
         }
 
-        // Verificar se o email já existe (se houver campo email na tabela)
-        const { data: existingEmail, error: emailCheckError } = await supabaseClient
-            .from('users')
-            .select('email')
-            .eq('email', email)
-            .single();
 
-        if (existingEmail) {
-            throw new Error('Este e-mail já está cadastrado');
-        }
 
         // Inserir novo usuário
         const { data: newUser, error: insertError } = await supabaseClient
@@ -41,7 +32,6 @@ async function registerUser(fullName, username, email, password, confirmPassword
                 {
                     full_name: fullName,
                     username: username,
-                    email: email,
                     password_hash: password, // Nota: em produção, use hash seguro
                     role: role,
                     is_active: true
@@ -77,7 +67,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const fullName = document.getElementById('full_name').value.trim();
             const username = document.getElementById('username').value.trim();
-            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
             const role = document.getElementById('role').value;
@@ -87,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Cadastrando...';
 
-            registerUser(fullName, username, email, password, confirmPassword, role).finally(() => {
+            registerUser(fullName, username, password, confirmPassword, role).finally(() => {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Cadastrar';
             });
