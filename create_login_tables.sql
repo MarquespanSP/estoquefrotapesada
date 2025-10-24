@@ -53,6 +53,11 @@ ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view own data" ON users;
 DROP POLICY IF EXISTS "Users can update own data" ON users;
 DROP POLICY IF EXISTS "Users can view own sessions" ON user_sessions;
+DROP POLICY IF EXISTS "Allow anonymous read for login" ON users;
+
+-- Política para permitir leitura anônima para login (temporária para desenvolvimento)
+CREATE POLICY "Allow anonymous read for login" ON users
+    FOR SELECT USING (true);
 
 -- Política para usuários verem apenas seus próprios dados
 CREATE POLICY "Users can view own data" ON users
