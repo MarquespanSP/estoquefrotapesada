@@ -156,11 +156,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Verificar status de login na página
-    const user = checkUser();
-    if (user && document.getElementById('welcome-message')) {
-        document.getElementById('welcome-message').textContent = `Bem-vindo, ${user.fullName || user.username}!`;
-    }
-    if (user && document.getElementById('user-role')) {
-        document.getElementById('user-role').textContent = `Nível de Acesso: ${user.role || 'Não definido'}`;
-    }
+    checkUser().then(user => {
+        if (user && document.getElementById('welcome-message')) {
+            document.getElementById('welcome-message').textContent = `Bem-vindo, ${user.fullName || user.username}!`;
+        }
+        if (user && document.getElementById('user-role')) {
+            document.getElementById('user-role').textContent = `Nível de Acesso: ${user.role || 'Não definido'}`;
+        }
+    });
 });
