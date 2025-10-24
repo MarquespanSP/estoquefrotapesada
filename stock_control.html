@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Controle de Estoque - Estoque Frota Pesada</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="logo.png" alt="Logo Estoque Frota Pesada" style="height: 40px; margin-right: 10px;">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="#" onclick="logoutUser()">Sair</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <h1>Controle de Estoque</h1>
+                <div id="user-info" class="welcome-message">Carregando informações do usuário...</div>
+            </div>
+
+            <div class="stock-control-grid">
+                <div class="stock-card">
+                    <h3>📝 Cadastro de Peças</h3>
+                    <p>Cadastrar novas peças no sistema com código, nome e fornecedor.</p>
+                    <a href="piece_registration.html" class="btn">Cadastrar Peça</a>
+                </div>
+                <div class="stock-card">
+                    <h3>📦 Movimentação de Estoque</h3>
+                    <p>Registrar entradas e saídas de peças no estoque.</p>
+                    <a href="stock_movement.html" class="btn">Registrar Movimentação</a>
+                </div>
+                <div class="stock-card">
+                    <h3>🏢 Gerenciamento de Locais</h3>
+                    <p>Criar e gerenciar locais de armazenamento no estoque.</p>
+                    <a href="location_management.html" class="btn">Gerenciar Locais</a>
+                </div>
+                <div class="stock-card">
+                    <h3>🔍 Localizar Peça</h3>
+                    <p>Buscar peças no estoque por código ou nome.</p>
+                    <a href="piece_search.html" class="btn">Buscar Peça</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Script de autenticação -->
+    <script src="assets/js/auth.js"></script>
+    <!-- Script de controle de estoque -->
+    <script src="assets/js/stock_control.js"></script>
+</body>
+</html>

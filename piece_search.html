@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Localizar Peça - Estoque Frota Pesada</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="logo.png" alt="Logo Estoque Frota Pesada" style="height: 40px; margin-right: 10px;">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="stock_control.html">Controle de Estoque</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="#" onclick="logoutUser()">Sair</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="form-container">
+            <h2>Localizar Peça no Estoque</h2>
+            <form id="search-form">
+                <div class="form-group">
+                    <label for="search_term">Buscar Peça (Código ou Nome):</label>
+                    <input type="text" id="search_term" name="search_term" placeholder="Digite código ou nome da peça" autocomplete="off">
+                    <div id="search_suggestions" class="suggestions" style="display: none;"></div>
+                </div>
+                <button type="submit">Buscar</button>
+            </form>
+            <div id="message" class="message" style="display: none;"></div>
+
+            <div id="search-results" class="search-results" style="display: none;">
+                <h3>Resultado da Busca</h3>
+                <div id="piece-details" class="piece-details">
+                    <!-- Detalhes da peça serão exibidos aqui -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Script de autenticação -->
+    <script src="assets/js/auth.js"></script>
+    <!-- Script de busca de peças -->
+    <script src="assets/js/piece_search.js"></script>
+</body>
+</html>

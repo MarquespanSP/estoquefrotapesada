@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Cadastro de Peça - Estoque Frota Pesada</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="logo.png" alt="Logo Estoque Frota Pesada" style="height: 40px; margin-right: 10px;">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="stock_control.html">Controle de Estoque</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="#" onclick="logoutUser()">Sair</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="form-container">
+            <h2>Cadastro de Peça</h2>
+            <form id="piece-form">
+                <div class="form-group">
+                    <label for="piece_code">Código da Peça:</label>
+                    <input type="text" id="piece_code" name="piece_code" required placeholder="Digite o código da peça" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="piece_name">Nome da Peça:</label>
+                    <input type="text" id="piece_name" name="piece_name" required placeholder="Digite o nome da peça" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="supplier">Fornecedor:</label>
+                    <select id="supplier" name="supplier" required>
+                        <option value="">Selecione um fornecedor</option>
+                    </select>
+                </div>
+                <button type="submit">Cadastrar Peça</button>
+            </form>
+            <div id="message" class="message" style="display: none;"></div>
+        </div>
+    </main>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Script de autenticação -->
+    <script src="assets/js/auth.js"></script>
+    <!-- Script de cadastro de peças -->
+    <script src="assets/js/piece_registration.js"></script>
+</body>
+</html>
