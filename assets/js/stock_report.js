@@ -7,12 +7,30 @@ let filteredMovements = [];
 
 // Carregar dados quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
+    loadUserInfo();
     loadLocations();
     loadMovements();
     setupFilters();
     setupPagination();
     setupModal();
 });
+
+// Carregar informações do usuário logado
+async function loadUserInfo() {
+    try {
+        const user = await getLoggedUser();
+        if (user) {
+            document.getElementById('user-info').textContent = `Usuário: ${user.fullName || user.username} (${user.role})`;
+        } else {
+            // Redirecionar para login se não estiver logado
+            window.location.href = 'index.html';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar informações do usuário:', error);
+        // Redirecionar para login em caso de erro
+        window.location.href = 'index.html';
+    }
+}
 
 // Carregar locais para o filtro
 async function loadLocations() {
