@@ -114,11 +114,11 @@ async function getLoggedUser() {
 }
 
 // Função para mostrar mensagens
-function showMessage(message, type) {
+function showMessage(message, type = 'info') {
     const messageDiv = document.getElementById('message');
     if (messageDiv) {
         messageDiv.textContent = message;
-        messageDiv.className = `message ${type}-message`;
+        messageDiv.className = `message ${type}`;
         messageDiv.style.display = 'block';
 
         // Esconder mensagem após 5 segundos
