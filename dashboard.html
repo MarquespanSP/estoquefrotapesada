@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Estoque Frota Pesada</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .header {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 {
+            margin: 0;
+            color: #333;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .dashboard-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .welcome-message {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .menu-item {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .menu-item:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Dashboard - Estoque Frota Pesada</h1>
+        <button id="logout-btn" class="logout-btn">Sair</button>
+    </div>
+
+    <div class="dashboard-content">
+        <p class="welcome-message">Bem-vindo ao sistema de controle de estoque!</p>
+
+        <div class="menu">
+            <a href="#" class="menu-item">
+                <h3>Gerenciar Veículos</h3>
+                <p>Adicionar, editar e remover veículos</p>
+            </a>
+            <a href="#" class="menu-item">
+                <h3>Controle de Estoque</h3>
+                <p>Gerenciar peças e suprimentos</p>
+            </a>
+            <a href="#" class="menu-item">
+                <h3>Relatórios</h3>
+                <p>Visualizar relatórios e estatísticas</p>
+            </a>
+            <a href="#" class="menu-item">
+                <h3>Manutenção</h3>
+                <p>Agendar e controlar manutenções</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Script de login -->
+    <script src="login.js"></script>
+</body>
+</html>
