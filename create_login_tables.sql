@@ -38,7 +38,8 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Trigger para atualizar updated_at na tabela users
+-- Trigger para atualizar updated_at na tabela users (remover se já existir)
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 CREATE TRIGGER update_users_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW
