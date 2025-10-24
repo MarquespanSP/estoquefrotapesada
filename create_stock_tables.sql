@@ -160,19 +160,19 @@ CREATE POLICY "Users can update own data" ON users
 
 -- Políticas para fornecedores (acesso total para usuários autenticados)
 CREATE POLICY "Allow all operations on suppliers" ON suppliers
-    FOR ALL USING (auth.role() = 'authenticated');
+    FOR ALL USING (true);
 
 -- Políticas para locais (acesso total para usuários autenticados)
 CREATE POLICY "Allow all operations on locations" ON locations
-    FOR ALL USING (auth.role() = 'authenticated');
+    FOR ALL USING (true);
 
 -- Políticas para peças (acesso total para usuários autenticados)
 CREATE POLICY "Allow all operations on pieces" ON pieces
-    FOR ALL USING (auth.role() = 'authenticated');
+    FOR ALL USING (true);
 
 -- Políticas para movimentações de estoque (acesso total para usuários autenticados)
 CREATE POLICY "Allow all operations on stock_movements" ON stock_movements
-    FOR ALL USING (auth.role() = 'authenticated');
+    FOR ALL USING (true);
 
 -- Políticas para sessões
 CREATE POLICY "Users can view own sessions" ON user_sessions
