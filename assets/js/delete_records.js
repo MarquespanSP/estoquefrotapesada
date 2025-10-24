@@ -1,4 +1,5 @@
-// Script JavaScript para exclusão de lançamentos
+ssets/js/delete_records.js</path>
+<content">// Script JavaScript para exclusão de lançamentos
 
 let currentDeleteItem = null;
 let currentDeleteType = null;
@@ -42,13 +43,9 @@ async function loadUserInfo() {
 // Buscar movimentações
 async function searchMovements() {
     const searchTerm = document.getElementById('movement-search').value.trim();
-    if (!searchTerm) {
-        showMessage('Digite um termo de busca', 'warning');
-        return;
-    }
 
     try {
-        const { data, error } = await supabaseClient
+        let query = supabaseClient
             .from('stock_movements')
             .select(`
                 id,
@@ -60,9 +57,16 @@ async function searchMovements() {
                 locations (code, description),
                 users (username, full_name)
             `)
-            .or(`pieces.code.ilike.%${searchTerm}%,id.eq.${searchTerm}`)
-            .order('movement_date', { ascending: false })
-            .limit(50);
+            .order('movement_date', { ascending: false });
+
+        // Se há termo de busca, filtrar; senão, buscar tudo
+        if (searchTerm) {
+            query = query.or(`pieces.code.ilike.%${searchTerm}%,id.eq.${searchTerm}`);
+        }
+
+        query = query.limit(100); // Aumentar limite para mostrar mais resultados
+
+        const { data, error } = await query;
 
         if (error) throw error;
 
@@ -76,13 +80,9 @@ async function searchMovements() {
 // Buscar peças
 async function searchPieces() {
     const searchTerm = document.getElementById('piece-search').value.trim();
-    if (!searchTerm) {
-        showMessage('Digite um termo de busca', 'warning');
-        return;
-    }
 
     try {
-        const { data, error } = await supabaseClient
+        let query = supabaseClient
             .from('pieces')
             .select(`
                 id,
@@ -91,9 +91,16 @@ async function searchPieces() {
                 suppliers (name),
                 created_at
             `)
-            .or(`code.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%`)
-            .order('created_at', { ascending: false })
-            .limit(50);
+            .order('created_at', { ascending: false });
+
+        // Se há termo de busca, filtrar; senão, buscar tudo
+        if (searchTerm) {
+            query = query.or(`code.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%`);
+        }
+
+        query = query.limit(100); // Aumentar limite para mostrar mais resultados
+
+        const { data, error } = await query;
 
         if (error) throw error;
 
@@ -107,18 +114,21 @@ async function searchPieces() {
 // Buscar locais
 async function searchLocations() {
     const searchTerm = document.getElementById('location-search').value.trim();
-    if (!searchTerm) {
-        showMessage('Digite um termo de busca', 'warning');
-        return;
-    }
 
     try {
-        const { data, error } = await supabaseClient
+        let query = supabaseClient
             .from('locations')
             .select('id, code, description, created_at')
-            .ilike('code', `%${searchTerm}%`)
-            .order('created_at', { ascending: false })
-            .limit(50);
+            .order('created_at', { ascending: false });
+
+        // Se há termo de busca, filtrar; senão, buscar tudo
+        if (searchTerm) {
+            query = query.ilike('code', `%${searchTerm}%`);
+        }
+
+        query = query.limit(100); // Aumentar limite para mostrar mais resultados
+
+        const { data, error } = await query;
 
         if (error) throw error;
 
