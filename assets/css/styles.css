@@ -4,7 +4,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f8f9fa;
+    background-color: #ffffff;
     color: #333;
 }
 
@@ -15,7 +15,7 @@ body {
 }
 
 header {
-    background-color: #2c3e50;
+    background: linear-gradient(135deg, #2e8b57 0%, #228b22 100%);
     color: white;
     padding: 1rem 0;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -30,6 +30,8 @@ header .container {
 .logo {
     font-size: 1.5rem;
     font-weight: bold;
+    display: flex;
+    align-items: center;
 }
 
 nav ul {
@@ -52,7 +54,7 @@ nav ul li a {
 }
 
 nav ul li a:hover {
-    background-color: #34495e;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Formulários */
@@ -95,7 +97,7 @@ input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focu
 button {
     width: 100%;
     padding: 12px;
-    background-color: #007bff;
+    background: linear-gradient(135deg, #2e8b57 0%, #228b22 100%);
     color: white;
     border: none;
     border-radius: 4px;
@@ -105,7 +107,7 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background: linear-gradient(135deg, #228b22 0%, #1e7e34 100%);
 }
 
 button:disabled {
