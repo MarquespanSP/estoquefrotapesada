@@ -217,6 +217,91 @@ button:disabled {
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
+/* Tabela de resultados de busca */
+.search-results-table {
+    margin-top: 30px;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 600px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    font-size: 14px;
+}
+
+.results-table th,
+.results-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.results-table th {
+    background: linear-gradient(135deg, #2e8b57 0%, #228b22 100%);
+    color: white;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.results-table tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.results-table tr:hover {
+    background-color: #e8f5e8;
+}
+
+.results-table .piece-code {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.results-table .piece-name {
+    color: #555;
+}
+
+.results-table .supplier-info {
+    color: #666;
+    font-style: italic;
+}
+
+.results-table .location-info {
+    background-color: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin: 2px 0;
+    border-left: 3px solid #28a745;
+    font-size: 13px;
+}
+
+.results-table .no-stock {
+    color: #dc3545;
+    font-style: italic;
+}
+
+/* Responsividade para tabela */
+@media (max-width: 768px) {
+    .results-table {
+        font-size: 12px;
+    }
+
+    .results-table th,
+    .results-table td {
+        padding: 8px 10px;
+    }
+
+    .search-results-table {
+        max-height: 400px;
+    }
+}
+
 /* Mensagens */
 .message {
     padding: 10px;

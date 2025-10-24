@@ -262,27 +262,49 @@ function displayAllSearchResults(results) {
         return;
     }
 
-    detailsDiv.innerHTML = `
-        <div class="piece-info">
-            <h4>Todas as Peças Cadastradas (${results.length})</h4>
-            ${results.map(result => `
-                <div style="border-bottom: 1px solid #eee; padding: 15px 0; margin-bottom: 10px;">
-                    <h5>${result.piece.code} - ${result.piece.name}</h5>
-                    <p><strong>Fornecedor:</strong> ${result.supplierName || 'Não informado'}</p>
-                    <div class="stock-locations">
-                        <h6>Localização e Quantidade:</h6>
-                        ${Object.keys(result.stockByLocation).length > 0 ?
-                            Object.values(result.stockByLocation).map(location => `
-                                <div class="location-stock">
-                                    <strong>${location.code}</strong>${location.description ? ` - ${location.description}` : ''}: ${location.quantity} unidade(s)
-                                </div>
-                            `).join('') :
-                            '<p>Peça não encontrada em nenhum local do estoque.</p>'
-                        }
-                    </div>
-                </div>
-            `).join('')}
+    // Criar tabela HTML
+    let tableHTML = `
+        <div class="search-results-table">
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nome da Peça</th>
+                        <th>Fornecedor</th>
+                        <th>Localização e Quantidade</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    results.forEach(result => {
+        const locationsHTML = Object.keys(result.stockByLocation).length > 0 ?
+            Object.values(result.stockByLocation).map(location =>
+                `<div class="location-info">
+                    <strong>${location.code}</strong>${location.description ? ` - ${location.description}` : ''}: ${location.quantity} unidade(s)
+                </div>`
+            ).join('') :
+            '<span class="no-stock">Peça não encontrada em nenhum local do estoque</span>';
+
+        tableHTML += `
+            <tr>
+                <td class="piece-code">${result.piece.code}</td>
+                <td class="piece-name">${result.piece.name}</td>
+                <td class="supplier-info">${result.supplierName || 'Não informado'}</td>
+                <td>${locationsHTML}</td>
+            </tr>
+        `;
+    });
+
+    tableHTML += `
+                </tbody>
+            </table>
         </div>
+    `;
+
+    detailsDiv.innerHTML = `
+        <h4>Todas as Peças Cadastradas (${results.length})</h4>
+        ${tableHTML}
     `;
 
     resultsDiv.style.display = 'block';
