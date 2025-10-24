@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Relatório de Movimentações - Estoque Frota Pesada</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="logo.png" alt="Logo Estoque Frota Pesada" style="height: 40px; margin-right: 10px;">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="stock_control.html">Controle de Estoque</a></li>
+                    <li><a href="#" onclick="logoutUser()">Sair</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <h1>📊 Relatório de Movimentações de Estoque</h1>
+                <div id="user-info" class="welcome-message">Carregando informações do usuário...</div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filters-section">
+                <div class="filter-group">
+                    <label for="filter-piece">Peça:</label>
+                    <input type="text" id="filter-piece" placeholder="Buscar por código ou nome da peça">
+                </div>
+                <div class="filter-group">
+                    <label for="filter-location">Local:</label>
+                    <select id="filter-location">
+                        <option value="">Todos os locais</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-type">Tipo:</label>
+                    <select id="filter-type">
+                        <option value="">Todos os tipos</option>
+                        <option value="entrada">Entrada</option>
+                        <option value="saida">Saída</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-date-from">De:</label>
+                    <input type="date" id="filter-date-from">
+                </div>
+                <div class="filter-group">
+                    <label for="filter-date-to">Até:</label>
+                    <input type="date" id="filter-date-to">
+                </div>
+                <div class="filter-group">
+                    <button id="apply-filters" class="btn">Aplicar Filtros</button>
+                    <button id="clear-filters" class="btn btn-secondary">Limpar</button>
+                </div>
+            </div>
+
+            <!-- Estatísticas -->
+            <div class="stats-section">
+                <div class="stat-card">
+                    <h4>Total de Movimentações</h4>
+                    <span id="total-movements">0</span>
+                </div>
+                <div class="stat-card">
+                    <h4>Entradas</h4>
+                    <span id="total-entradas">0</span>
+                </div>
+                <div class="stat-card">
+                    <h4>Saídas</h4>
+                    <span id="total-saidas">0</span>
+                </div>
+                <div class="stat-card">
+                    <h4>Saldo Atual</h4>
+                    <span id="current-balance">0</span>
+                </div>
+            </div>
+
+            <!-- Tabela de Movimentações -->
+            <div class="report-table-container">
+                <table id="movements-table" class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Peça</th>
+                            <th>Fornecedor</th>
+                            <th>Local</th>
+                            <th>Tipo</th>
+                            <th>Quantidade</th>
+                            <th>Usuário</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movements-tbody">
+                        <tr>
+                            <td colspan="7" class="loading">Carregando movimentações...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            <div class="pagination">
+                <button id="prev-page" class="btn btn-secondary">Anterior</button>
+                <span id="page-info">Página 1 de 1</span>
+                <button id="next-page" class="btn btn-secondary">Próxima</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Detalhes -->
+    <div id="details-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Detalhes da Movimentação</h2>
+            <div id="movement-details"></div>
+        </div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Script de autenticação -->
+    <script src="assets/js/auth.js"></script>
+    <!-- Script do relatório -->
+    <script src="assets/js/stock_report.js"></script>
+</body>
+</html>
