@@ -62,9 +62,9 @@ nav ul li a:hover {
     background-color: white;
     padding: 40px;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 400px;
+    max-width: 450px;
     margin: 50px auto;
 }
 
@@ -79,7 +79,7 @@ label {
     font-weight: 500;
 }
 
-input[type="text"], input[type="password"], input[type="email"] {
+input[type="text"], input[type="password"], input[type="email"], select {
     width: 100%;
     padding: 12px;
     border: 1px solid #ddd;
@@ -88,7 +88,7 @@ input[type="text"], input[type="password"], input[type="email"] {
     box-sizing: border-box;
 }
 
-input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
+input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus {
     outline: none;
     border-color: #007bff;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
@@ -296,7 +296,7 @@ button:disabled {
         padding: 15px;
     }
 
-    input[type="text"], input[type="password"], input[type="email"] {
+    input[type="text"], input[type="password"], input[type="email"], select {
         padding: 10px;
         font-size: 16px; /* Previne zoom no iOS */
     }
@@ -349,6 +349,10 @@ button:disabled {
     }
 
     button {
+        min-height: 44px;
+    }
+
+    select {
         min-height: 44px;
     }
 }
