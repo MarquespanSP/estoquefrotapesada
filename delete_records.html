@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Exclusão de Lançamentos - Estoque Frota Pesada</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="logo.png" alt="Logo Estoque Frota Pesada" style="height: 40px; margin-right: 10px;">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="stock_control.html">Controle de Estoque</a></li>
+                    <li><a href="#" onclick="logoutUser()">Sair</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="form-container">
+            <div class="form-header">
+                <h1>🗑️ Exclusão de Lançamentos</h1>
+                <div id="user-info" class="welcome-message">Carregando informações do usuário...</div>
+            </div>
+
+            <div class="delete-tabs">
+                <button class="tab-btn active" onclick="showTab('movements')">Movimentações</button>
+                <button class="tab-btn" onclick="showTab('pieces')">Peças</button>
+                <button class="tab-btn" onclick="showTab('locations')">Locais</button>
+            </div>
+
+            <!-- Aba Movimentações -->
+            <div id="movements-tab" class="tab-content active">
+                <h2>Excluir Movimentações de Estoque</h2>
+                <div class="search-section">
+                    <div class="form-group">
+                        <label for="movement-search">Buscar Movimentação:</label>
+                        <input type="text" id="movement-search" placeholder="Digite código da peça ou ID da movimentação">
+                        <button onclick="searchMovements()" class="btn">Buscar</button>
+                    </div>
+                </div>
+
+                <div id="movements-results" class="results-section">
+                    <!-- Resultados da busca aparecerão aqui -->
+                </div>
+            </div>
+
+            <!-- Aba Peças -->
+            <div id="pieces-tab" class="tab-content">
+                <h2>Excluir Peças</h2>
+                <div class="search-section">
+                    <div class="form-group">
+                        <label for="piece-search">Buscar Peça:</label>
+                        <input type="text" id="piece-search" placeholder="Digite código ou nome da peça">
+                        <button onclick="searchPieces()" class="btn">Buscar</button>
+                    </div>
+                </div>
+
+                <div id="pieces-results" class="results-section">
+                    <!-- Resultados da busca aparecerão aqui -->
+                </div>
+            </div>
+
+            <!-- Aba Locais -->
+            <div id="locations-tab" class="tab-content">
+                <h2>Excluir Locais</h2>
+                <div class="search-section">
+                    <div class="form-group">
+                        <label for="location-search">Buscar Local:</label>
+                        <input type="text" id="location-search" placeholder="Digite código do local">
+                        <button onclick="searchLocations()" class="btn">Buscar</button>
+                    </div>
+                </div>
+
+                <div id="locations-results" class="results-section">
+                    <!-- Resultados da busca aparecerão aqui -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Confirmação -->
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <h3>Confirmar Exclusão</h3>
+            <p id="confirm-message">Tem certeza que deseja excluir este item?</p>
+            <div class="modal-buttons">
+                <button onclick="closeModal()" class="btn">Cancelar</button>
+                <button onclick="confirmDelete()" class="btn btn-danger">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Script de autenticação -->
+    <script src="assets/js/auth.js"></script>
+    <!-- Script de exclusão -->
+    <script src="assets/js/delete_records.js"></script>
+</body>
+</html>
