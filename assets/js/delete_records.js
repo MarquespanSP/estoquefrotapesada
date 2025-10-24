@@ -3,12 +3,22 @@
 let currentDeleteItem = null;
 let currentDeleteType = null;
 
-// Inicializar Supabase (mesmas credenciais do auth.js)
-const SUPABASE_URL = 'https://iutwaspoegvbebaemghy.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dHdhc3BvZWd2YmViYWVtZ2h5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzMDg0MzIsImV4cCI6MjA3Njg4NDQzMn0.orZgrWLHhps1wpKbeP_fKLeF0Xjog-ECYdIkxC_LcCc';
+// Funções de navegação entre abas
+function showTab(tabName) {
+    // Esconder todas as abas
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.classList.remove('active'));
 
-const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Remover classe active de todos os botões
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+
+    // Mostrar aba selecionada
+    document.getElementById(tabName + '-tab').classList.add('active');
+
+    // Ativar botão selecionado
+    event.target.classList.add('active');
+}
 
 // Carregar informações do usuário logado
 document.addEventListener('DOMContentLoaded', function() {
@@ -27,23 +37,6 @@ async function loadUserInfo() {
         console.error('Erro ao carregar informações do usuário:', error);
         window.location.href = 'index.html';
     }
-}
-
-// Funções de navegação entre abas
-function showTab(tabName) {
-    // Esconder todas as abas
-    const tabs = document.querySelectorAll('.tab-content');
-    tabs.forEach(tab => tab.classList.remove('active'));
-
-    // Remover classe active de todos os botões
-    const buttons = document.querySelectorAll('.tab-btn');
-    buttons.forEach(btn => btn.classList.remove('active'));
-
-    // Mostrar aba selecionada
-    document.getElementById(tabName + '-tab').classList.add('active');
-
-    // Ativar botão selecionado
-    event.target.classList.add('active');
 }
 
 // Buscar movimentações
