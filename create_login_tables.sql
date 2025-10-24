@@ -4,12 +4,16 @@
 -- Habilitar a extensão UUID se não estiver habilitada
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Criar enum para níveis de acesso
+CREATE TYPE user_role AS ENUM ('Administrador', 'Diretoria', 'Supervisor', 'Operador');
+
 -- Criar tabela de usuários
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(255),
+    role user_role DEFAULT 'Operador',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     is_active BOOLEAN DEFAULT TRUE
@@ -71,8 +75,12 @@ CREATE POLICY "Users can update own data" ON users
 CREATE POLICY "Users can view own sessions" ON user_sessions
     FOR SELECT USING (auth.uid() = user_id);
 
--- Inserir um usuário de exemplo (remova em produção)
+-- Inserir usuários de exemplo com diferentes níveis de acesso (remova em produção)
 -- Senha: 'admin123' (atualize para hash seguro em produção)
-INSERT INTO users (username, password_hash, full_name)
-VALUES ('admin', 'admin123', 'Administrador')
+INSERT INTO users (username, password_hash, full_name, role)
+VALUES
+    ('admin', 'admin123', 'Administrador', 'Administrador'),
+    ('diretoria', 'dir123', 'Diretor Executivo', 'Diretoria'),
+    ('supervisor', 'sup123', 'Supervisor Geral', 'Supervisor'),
+    ('operador', 'op123', 'Operador de Estoque', 'Operador')
 ON CONFLICT (username) DO NOTHING;

@@ -35,6 +35,7 @@ async function loginUser(username, password) {
             userId: userData.id,
             username: userData.username,
             fullName: userData.full_name,
+            role: userData.role,
             loginTime: new Date().toISOString()
         };
 
@@ -117,5 +118,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const user = checkUser();
     if (user && document.getElementById('welcome-message')) {
         document.getElementById('welcome-message').textContent = `Bem-vindo, ${user.fullName || user.username}!`;
+    }
+    if (user && document.getElementById('user-role')) {
+        document.getElementById('user-role').textContent = `Nível de Acesso: ${user.role || 'Não definido'}`;
     }
 });
