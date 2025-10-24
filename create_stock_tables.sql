@@ -143,6 +143,7 @@ DROP POLICY IF EXISTS "Users can view own data" ON users;
 DROP POLICY IF EXISTS "Users can update own data" ON users;
 DROP POLICY IF EXISTS "Users can view own sessions" ON user_sessions;
 DROP POLICY IF EXISTS "Allow anonymous read for login" ON users;
+DROP POLICY IF EXISTS "Allow user registration" ON users;
 DROP POLICY IF EXISTS "Allow all operations on suppliers" ON suppliers;
 DROP POLICY IF EXISTS "Allow all operations on locations" ON locations;
 DROP POLICY IF EXISTS "Allow all operations on pieces" ON pieces;
@@ -157,6 +158,10 @@ CREATE POLICY "Users can view own data" ON users
 
 CREATE POLICY "Users can update own data" ON users
     FOR UPDATE USING (auth.uid() = id);
+
+-- Política para permitir inserção de usuários (registro)
+CREATE POLICY "Allow user registration" ON users
+    FOR INSERT WITH CHECK (true);
 
 -- Políticas para fornecedores (acesso total para usuários autenticados)
 CREATE POLICY "Allow all operations on suppliers" ON suppliers
