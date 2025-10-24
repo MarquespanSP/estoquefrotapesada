@@ -7,19 +7,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadUserInfo() {
     try {
-        const { data: { user } } = await supabaseClient.auth.getUser();
+        const user = await getLoggedUser();
         if (user) {
-            const { data: userData, error } = await supabaseClient
-                .from('users')
-                .select('full_name, role')
-                .eq('username', user.email)
-                .single();
-
-            if (userData) {
-                document.getElementById('user-info').textContent = `Usuário: ${userData.full_name} (${userData.role})`;
-            }
+            document.getElementById('user-info').textContent = `Usuário: ${user.fullName || user.username} (${user.role})`;
+        } else {
+            // Redirecionar para login se não estiver logado
+            window.location.href = 'index.html';
         }
     } catch (error) {
         console.error('Erro ao carregar informações do usuário:', error);
+        // Redirecionar para login em caso de erro
+        window.location.href = 'index.html';
     }
 }

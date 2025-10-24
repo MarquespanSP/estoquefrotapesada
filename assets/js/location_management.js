@@ -44,16 +44,10 @@ async function registerLocation() {
         }
 
         // Obter usuário logado
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (!user) {
+        const userSession = getLoggedUser();
+        if (!userSession) {
             throw new Error('Usuário não autenticado');
         }
-
-        const { data: userData } = await supabaseClient
-            .from('users')
-            .select('username')
-            .eq('username', user.email)
-            .single();
 
         // Inserir novo local
         const { data: newLocation, error: insertError } = await supabaseClient
@@ -62,7 +56,7 @@ async function registerLocation() {
                 {
                     code: locationCode,
                     description: locationDescription || null,
-                    created_by: userData.username,
+                    created_by: userSession.username,
                     created_at: new Date().toISOString(),
                     is_active: true
                 }

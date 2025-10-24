@@ -59,17 +59,58 @@ function logoutUser() {
     window.location.href = 'index.html';
 }
 
-// Função para verificar se usuário está logado (usando localStorage)
-function checkUser() {
-    const sessionData = localStorage.getItem('userSession');
-    if (sessionData) {
+// Função para verificar se usuário está logado e validar no banco
+async function checkUser() {
+    try {
+        const sessionData = localStorage.getItem('userSession');
+        if (!sessionData) {
+            console.log('Nenhum usuário logado');
+            return null;
+        }
+
         const session = JSON.parse(sessionData);
-        console.log('Usuário logado:', session);
-        return session;
-    } else {
-        console.log('Nenhum usuário logado');
+
+        // Validar se o usuário ainda existe e está ativo no banco
+        const { data: userData, error } = await supabaseClient
+            .from('users')
+            .select('id, username, full_name, role, is_active')
+            .eq('username', session.username)
+            .eq('is_active', true)
+            .single();
+
+        if (error || !userData) {
+            console.log('Usuário não encontrado ou inativo no banco');
+            // Limpar sessão inválida
+            localStorage.removeItem('userSession');
+            return null;
+        }
+
+        // Atualizar sessão com dados mais recentes do banco
+        const updatedSession = {
+            userId: userData.id,
+            username: userData.username,
+            fullName: userData.full_name,
+            role: userData.role,
+            loginTime: session.loginTime // Manter horário original do login
+        };
+
+        // Salvar sessão atualizada
+        localStorage.setItem('userSession', JSON.stringify(updatedSession));
+
+        console.log('Usuário validado:', updatedSession);
+        return updatedSession;
+
+    } catch (error) {
+        console.error('Erro ao validar usuário:', error);
+        // Em caso de erro, limpar sessão
+        localStorage.removeItem('userSession');
         return null;
     }
+}
+
+// Função para obter usuário logado (compatibilidade com outros scripts)
+async function getLoggedUser() {
+    return await checkUser();
 }
 
 // Função para mostrar mensagens

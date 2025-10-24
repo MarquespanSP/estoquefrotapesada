@@ -129,16 +129,10 @@ async function registerMovement() {
         }
 
         // Obter usuário logado
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (!user) {
+        const userSession = await getLoggedUser();
+        if (!userSession) {
             throw new Error('Usuário não autenticado');
         }
-
-        const { data: userData } = await supabaseClient
-            .from('users')
-            .select('username')
-            .eq('username', user.email)
-            .single();
 
         // Verificar estoque atual se for saída
         if (movementType === 'saida') {
@@ -170,7 +164,7 @@ async function registerMovement() {
                     location_id: locationId,
                     quantity: movementQuantity,
                     movement_type: movementType,
-                    created_by: userData.username,
+                    created_by: userSession.username,
                     created_at: new Date().toISOString()
                 }
             ])

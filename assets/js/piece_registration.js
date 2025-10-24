@@ -70,16 +70,10 @@ async function registerPiece() {
         }
 
         // Obter usuário logado
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (!user) {
+        const userSession = await getLoggedUser();
+        if (!userSession) {
             throw new Error('Usuário não autenticado');
         }
-
-        const { data: userData } = await supabaseClient
-            .from('users')
-            .select('username')
-            .eq('username', user.email)
-            .single();
 
         // Inserir nova peça
         const { data: newPiece, error: insertError } = await supabaseClient
@@ -89,7 +83,7 @@ async function registerPiece() {
                     code: pieceCode,
                     name: pieceName,
                     supplier_id: supplierId,
-                    created_by: userData.username,
+                    created_by: userSession.username,
                     created_at: new Date().toISOString(),
                     is_active: true
                 }
