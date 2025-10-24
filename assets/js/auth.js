@@ -97,7 +97,7 @@ async function checkUser() {
         // Salvar sessão atualizada
         localStorage.setItem('userSession', JSON.stringify(updatedSession));
 
-        console.log('Usuário validado:', updatedSession);
+        // console.log('Usuário validado:', updatedSession);
         return updatedSession;
 
     } catch (error) {
