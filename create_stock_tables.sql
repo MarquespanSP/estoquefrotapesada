@@ -131,11 +131,13 @@ CREATE TRIGGER update_pieces_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Políticas RLS (Row Level Security) para segurança
+-- NOTA: Como o sistema usa autenticação customizada via localStorage,
+-- desabilitamos RLS para as tabelas principais para evitar conflitos
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE locations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE pieces ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stock_movements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE suppliers DISABLE ROW LEVEL SECURITY;
+ALTER TABLE locations DISABLE ROW LEVEL SECURITY;
+ALTER TABLE pieces DISABLE ROW LEVEL SECURITY;
+ALTER TABLE stock_movements DISABLE ROW LEVEL SECURITY;
 ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
 
 -- Remover políticas existentes se houver
@@ -144,10 +146,6 @@ DROP POLICY IF EXISTS "Users can update own data" ON users;
 DROP POLICY IF EXISTS "Users can view own sessions" ON user_sessions;
 DROP POLICY IF EXISTS "Allow anonymous read for login" ON users;
 DROP POLICY IF EXISTS "Allow user registration" ON users;
-DROP POLICY IF EXISTS "Allow all operations on suppliers" ON suppliers;
-DROP POLICY IF EXISTS "Allow all operations on locations" ON locations;
-DROP POLICY IF EXISTS "Allow all operations on pieces" ON pieces;
-DROP POLICY IF EXISTS "Allow all operations on stock_movements" ON stock_movements;
 
 -- Políticas para usuários (login)
 CREATE POLICY "Allow anonymous read for login" ON users
@@ -162,22 +160,6 @@ CREATE POLICY "Users can update own data" ON users
 -- Política para permitir inserção de usuários (registro)
 CREATE POLICY "Allow user registration" ON users
     FOR INSERT WITH CHECK (true);
-
--- Políticas para fornecedores (acesso total para usuários autenticados)
-CREATE POLICY "Allow all operations on suppliers" ON suppliers
-    FOR ALL USING (auth.uid() IS NOT NULL);
-
--- Políticas para locais (acesso total para usuários autenticados)
-CREATE POLICY "Allow all operations on locations" ON locations
-    FOR ALL USING (auth.uid() IS NOT NULL);
-
--- Políticas para peças (acesso total para usuários autenticados)
-CREATE POLICY "Allow all operations on pieces" ON pieces
-    FOR ALL USING (auth.uid() IS NOT NULL);
-
--- Políticas para movimentações de estoque (acesso total para usuários autenticados)
-CREATE POLICY "Allow all operations on stock_movements" ON stock_movements
-    FOR ALL USING (auth.uid() IS NOT NULL);
 
 -- Políticas para sessões
 CREATE POLICY "Users can view own sessions" ON user_sessions
