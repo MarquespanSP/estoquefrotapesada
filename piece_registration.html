@@ -39,13 +39,37 @@
                 </div>
                 <div class="form-group">
                     <label for="supplier">Fornecedor:</label>
-                    <select id="supplier" name="supplier" required>
-                        <option value="">Selecione um fornecedor</option>
-                    </select>
+                    <div class="supplier-container">
+                        <select id="supplier" name="supplier" required>
+                            <option value="">Selecione um fornecedor</option>
+                        </select>
+                        <button type="button" id="add-supplier-btn" class="add-btn" title="Adicionar novo fornecedor">
+                            <span>+</span>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit">Cadastrar Peça</button>
             </form>
             <div id="message" class="message" style="display: none;"></div>
+        </div>
+
+        <!-- Modal para adicionar fornecedor -->
+        <div id="supplier-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>Adicionar Novo Fornecedor</h3>
+                <form id="supplier-form">
+                    <div class="form-group">
+                        <label for="supplier_name">Nome do Fornecedor:</label>
+                        <input type="text" id="supplier_name" name="supplier_name" required placeholder="Digite o nome do fornecedor" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="supplier_contact">Informações de Contato:</label>
+                        <textarea id="supplier_contact" name="supplier_contact" placeholder="Telefone, email, endereço, etc." rows="3"></textarea>
+                    </div>
+                    <button type="submit">Adicionar Fornecedor</button>
+                </form>
+            </div>
         </div>
     </main>
 
