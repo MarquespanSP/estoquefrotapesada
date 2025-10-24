@@ -4,6 +4,7 @@ let currentPage = 1;
 const itemsPerPage = 50;
 let allMovements = [];
 let filteredMovements = [];
+let currentUser = null;
 
 // Carregar dados quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
@@ -13,14 +14,15 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFilters();
     setupPagination();
     setupModal();
+    setupDeleteModal();
 });
 
 // Carregar informações do usuário logado
 async function loadUserInfo() {
     try {
-        const user = await getLoggedUser();
-        if (user) {
-            document.getElementById('user-info').textContent = `Usuário: ${user.fullName || user.username} (${user.role})`;
+        currentUser = await getLoggedUser();
+        if (currentUser) {
+            document.getElementById('user-info').textContent = `Usuário: ${currentUser.fullName || currentUser.username} (${currentUser.role})`;
         } else {
             // Redirecionar para login se não estiver logado
             window.location.href = 'index.html';
@@ -192,7 +194,7 @@ function renderTable() {
     const pageMovements = filteredMovements.slice(startIndex, endIndex);
 
     if (pageMovements.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="no-data">Nenhuma movimentação encontrada</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="no-data">Nenhuma movimentação encontrada</td></tr>';
         updatePagination();
         return;
     }
@@ -205,6 +207,14 @@ function renderTable() {
         const quantity = movement.movement_type === 'entrada' ? `+${movement.quantity}` : `-${Math.abs(movement.quantity)}`;
         const typeClass = movement.movement_type === 'entrada' ? 'entrada' : 'saida';
 
+        // Verificar se usuário é administrador
+        const isAdmin = currentUser && currentUser.role === 'admin';
+        const actionsCell = isAdmin ?
+            `<button class="btn-small btn-danger delete-movement" data-id="${movement.id}" title="Excluir Movimentação">
+                <i class="fa fa-trash"></i> Excluir
+             </button>` :
+            '-';
+
         return `
             <tr class="movement-row" data-id="${movement.id}">
                 <td>${date}</td>
@@ -214,6 +224,7 @@ function renderTable() {
                 <td><span class="movement-type ${typeClass}">${movement.movement_type === 'entrada' ? 'Entrada' : 'Saída'}</span></td>
                 <td class="quantity ${typeClass}">${quantity}</td>
                 <td>${movement.created_by || 'N/A'}</td>
+                <td>${actionsCell}</td>
             </tr>
         `;
     }).join('');
@@ -221,6 +232,14 @@ function renderTable() {
     // Adicionar event listeners para as linhas
     document.querySelectorAll('.movement-row').forEach(row => {
         row.addEventListener('click', () => showMovementDetails(row.dataset.id));
+    });
+
+    // Adicionar event listeners para botões de exclusão
+    document.querySelectorAll('.delete-movement').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evitar abrir modal de detalhes
+            confirmDeleteMovement(btn.dataset.id);
+        });
     });
 
     updatePagination();
@@ -263,6 +282,33 @@ function setupModal() {
     const closeBtn = modal.querySelector('.close');
 
     closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+}
+
+// Configurar modal de exclusão
+function setupDeleteModal() {
+    const modal = document.getElementById('delete-modal');
+    const closeBtn = modal.querySelector('.close');
+    const cancelBtn = document.getElementById('cancel-delete');
+    const confirmBtn = document.getElementById('confirm-delete');
+
+    closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    confirmBtn.addEventListener('click', () => {
+        deleteMovement();
         modal.style.display = 'none';
     });
 
@@ -317,10 +363,48 @@ function showMovementDetails(movementId) {
     modal.style.display = 'block';
 }
 
+// Confirmar exclusão de movimentação
+function confirmDeleteMovement(movementId) {
+    const modal = document.getElementById('delete-modal');
+    modal.dataset.movementId = movementId;
+    modal.style.display = 'block';
+}
+
+// Excluir movimentação
+async function deleteMovement() {
+    const modal = document.getElementById('delete-modal');
+    const movementId = modal.dataset.movementId;
+
+    if (!movementId) return;
+
+    try {
+        const { error } = await supabaseClient
+            .from('stock_movements')
+            .delete()
+            .eq('id', movementId);
+
+        if (error) throw error;
+
+        // Remover da lista local
+        allMovements = allMovements.filter(m => m.id !== movementId);
+        filteredMovements = filteredMovements.filter(m => m.id !== movementId);
+
+        // Atualizar interface
+        updateStatistics();
+        renderTable();
+
+        showMessage('Movimentação excluída com sucesso!', 'success');
+
+    } catch (error) {
+        console.error('Erro ao excluir movimentação:', error);
+        showMessage('Erro ao excluir movimentação. Tente novamente.', 'error');
+    }
+}
+
 // Funções auxiliares
 function showLoading() {
     const tbody = document.getElementById('movements-tbody');
-    tbody.innerHTML = '<tr><td colspan="7" class="loading">Carregando movimentações...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="loading">Carregando movimentações...</td></tr>';
 }
 
 function debounce(func, wait) {

@@ -98,11 +98,12 @@
                             <th>Tipo</th>
                             <th>Quantidade</th>
                             <th>Usuário</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="movements-tbody">
                         <tr>
-                            <td colspan="7" class="loading">Carregando movimentações...</td>
+                            <td colspan="8" class="loading">Carregando movimentações...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -123,6 +124,20 @@
             <span class="close">&times;</span>
             <h2>Detalhes da Movimentação</h2>
             <div id="movement-details"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Confirmar Exclusão</h2>
+            <p>Tem certeza que deseja excluir esta movimentação?</p>
+            <p><strong>Atenção:</strong> Esta ação não pode ser desfeita.</p>
+            <div class="modal-actions">
+                <button id="confirm-delete" class="btn btn-danger">Excluir</button>
+                <button id="cancel-delete" class="btn btn-secondary">Cancelar</button>
+            </div>
         </div>
     </div>
 

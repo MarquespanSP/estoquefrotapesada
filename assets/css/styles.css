@@ -947,6 +947,18 @@ button:disabled {
     color: #2c3e50;
 }
 
+/* Modal de confirmação de exclusão */
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.modal-actions .btn {
+    min-width: 100px;
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
     .filters-section {
