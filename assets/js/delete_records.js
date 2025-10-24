@@ -3,6 +3,13 @@
 let currentDeleteItem = null;
 let currentDeleteType = null;
 
+// Inicializar Supabase (mesmas credenciais do auth.js)
+const SUPABASE_URL = 'https://iutwaspoegvbebaemghy.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dHdhc3BvZWd2YmViYWVtZ2h5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzMDg0MzIsImV4cCI6MjA3Njg4NDQzMn0.orZgrWLHhps1wpKbeP_fKLeF0Xjog-ECYdIkxC_LcCc';
+
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // Carregar informações do usuário logado
 document.addEventListener('DOMContentLoaded', function() {
     loadUserInfo();
@@ -48,7 +55,7 @@ async function searchMovements() {
     }
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('stock_movements')
             .select(`
                 id,
@@ -82,7 +89,7 @@ async function searchPieces() {
     }
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('pieces')
             .select(`
                 id,
@@ -113,7 +120,7 @@ async function searchLocations() {
     }
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('locations')
             .select('id, code, description, created_at')
             .ilike('code', `%${searchTerm}%`)
@@ -264,21 +271,21 @@ async function confirmDelete() {
 
         switch (currentDeleteType) {
             case 'movement':
-                ({ error } = await supabase
+                ({ error } = await supabaseClient
                     .from('stock_movements')
                     .delete()
                     .eq('id', currentDeleteItem));
                 break;
 
             case 'piece':
-                ({ error } = await supabase
+                ({ error } = await supabaseClient
                     .from('pieces')
                     .delete()
                     .eq('id', currentDeleteItem));
                 break;
 
             case 'location':
-                ({ error } = await supabase
+                ({ error } = await supabaseClient
                     .from('locations')
                     .delete()
                     .eq('id', currentDeleteItem));
