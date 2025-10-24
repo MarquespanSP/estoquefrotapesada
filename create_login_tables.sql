@@ -61,7 +61,7 @@ CREATE POLICY "Users can view own sessions" ON user_sessions
     FOR SELECT USING (auth.uid() = user_id);
 
 -- Inserir um usuário de exemplo (remova em produção)
--- Senha: 'admin123' (use bcrypt ou similar para hash real)
+-- Senha: 'admin123' (atualize para hash seguro em produção)
 INSERT INTO users (username, password_hash, full_name)
-VALUES ('admin', '$2b$10$example.hash.here', 'Administrador')
+VALUES ('admin', 'admin123', 'Administrador')
 ON CONFLICT (username) DO NOTHING;
