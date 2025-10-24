@@ -44,7 +44,7 @@ async function registerLocation() {
         }
 
         // Obter usuário logado
-        const userSession = getLoggedUser();
+        const userSession = await getLoggedUser();
         if (!userSession) {
             throw new Error('Usuário não autenticado');
         }
