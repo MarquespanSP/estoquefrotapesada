@@ -49,6 +49,11 @@ CREATE TRIGGER update_users_updated_at
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
 
+-- Remover políticas existentes se houver
+DROP POLICY IF EXISTS "Users can view own data" ON users;
+DROP POLICY IF EXISTS "Users can update own data" ON users;
+DROP POLICY IF EXISTS "Users can view own sessions" ON user_sessions;
+
 -- Política para usuários verem apenas seus próprios dados
 CREATE POLICY "Users can view own data" ON users
     FOR SELECT USING (auth.uid() = id);
