@@ -1,4 +1,4 @@
-// Script JavaScript para integração com Supabase para login
+// Script JavaScript para autenticação com Supabase
 // Substitua 'YOUR_SUPABASE_URL' e 'YOUR_SUPABASE_ANON_KEY' pelas suas credenciais do Supabase
 
 const SUPABASE_URL = 'YOUR_SUPABASE_URL';
@@ -46,7 +46,7 @@ async function loginUser(username, password) {
 
     } catch (error) {
         console.error('Erro no login:', error.message);
-        alert('Erro no login: ' + error.message);
+        showMessage('Erro no login: ' + error.message, 'error');
     }
 }
 
@@ -71,7 +71,22 @@ function checkUser() {
     }
 }
 
-// Event listener para formulário de login
+// Função para mostrar mensagens
+function showMessage(message, type) {
+    const messageDiv = document.getElementById('message');
+    if (messageDiv) {
+        messageDiv.textContent = message;
+        messageDiv.className = `message ${type}-message`;
+        messageDiv.style.display = 'block';
+
+        // Esconder mensagem após 5 segundos
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    }
+}
+
+// Event listeners quando DOM estiver carregado
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
@@ -79,7 +94,16 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            loginUser(username, password);
+
+            // Desabilitar botão durante login
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Entrando...';
+
+            loginUser(username, password).finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Entrar';
+            });
         });
     }
 
@@ -90,5 +114,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Verificar status de login na página
-    checkUser();
+    const user = checkUser();
+    if (user && document.getElementById('welcome-message')) {
+        document.getElementById('welcome-message').textContent = `Bem-vindo, ${user.fullName || user.username}!`;
+    }
 });
