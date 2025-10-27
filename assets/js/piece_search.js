@@ -378,10 +378,50 @@ async function openEditPieceModal(pieceId) {
 
         if (pieceError) throw pieceError;
 
+        // Buscar movimentações de estoque para calcular localização atual
+        const { data: movements, error: movementError } = await supabaseClient
+            .from('stock_movements')
+            .select(`
+                quantity,
+                locations (
+                    code,
+                    description
+                )
+            `)
+            .eq('piece_id', piece.id);
+
+        if (movementError) throw movementError;
+
+        // Calcular localização atual (local com maior quantidade)
+        let currentLocation = 'Nenhuma localização';
+        let maxQuantity = 0;
+
+        const stockByLocation = {};
+        movements.forEach(movement => {
+            const locationCode = movement.locations.code;
+            if (!stockByLocation[locationCode]) {
+                stockByLocation[locationCode] = {
+                    code: locationCode,
+                    description: movement.locations.description,
+                    quantity: 0
+                };
+            }
+            stockByLocation[locationCode].quantity += movement.quantity;
+        });
+
+        // Encontrar localização com maior quantidade
+        for (const location of Object.values(stockByLocation)) {
+            if (location.quantity > maxQuantity) {
+                maxQuantity = location.quantity;
+                currentLocation = `${location.code}${location.description ? ` - ${location.description}` : ''}`;
+            }
+        }
+
         // Preencher formulário
         document.getElementById('edit_piece_code').value = piece.code;
         document.getElementById('edit_piece_name').value = piece.name;
         document.getElementById('edit_supplier').value = piece.supplier_id;
+        document.getElementById('edit_current_location').value = currentLocation;
 
         // Armazenar ID da peça sendo editada
         document.getElementById('edit-piece-form').dataset.pieceId = pieceId;
