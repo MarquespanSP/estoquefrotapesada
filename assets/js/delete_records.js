@@ -22,39 +22,8 @@ function showTab(tabName) {
 
 // Carregar informações do usuário logado
 document.addEventListener('DOMContentLoaded', async function() {
-    // Verificar acesso de administrador primeiro
-    const hasAccess = await checkAdminAccess();
-    if (hasAccess) {
-        await loadUserInfo();
-    }
+    await loadUserInfo();
 });
-
-// Verificar se usuário é administrador
-async function checkAdminAccess() {
-    try {
-        // Aguardar um pouco para garantir que o auth.js tenha carregado
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        const user = await getLoggedUser();
-        if (!user) {
-            window.location.href = 'index.html';
-            return false;
-        }
-
-        if (!user.role || (user.role.toLowerCase() !== 'admin' && user.role.toLowerCase() !== 'administrator')) {
-            // Mostrar mensagem de acesso negado e redirecionar
-            alert('Acesso negado! Apenas administradores podem acessar esta página.');
-            window.location.href = 'dashboard.html';
-            return false;
-        }
-
-        return true;
-    } catch (error) {
-        console.error('Erro ao verificar acesso:', error);
-        window.location.href = 'index.html';
-        return false;
-    }
-}
 
 async function loadUserInfo() {
     try {
