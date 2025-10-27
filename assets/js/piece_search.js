@@ -90,7 +90,7 @@ async function performSearch(searchTerm) {
         // Buscar peça pelo código ou nome
         const { data: pieces, error: pieceError } = await supabaseClient
             .from('pieces')
-            .select('id, code, name, supplier_id')
+            .select('id, code, name, supplier_id, location_id')
             .eq('is_active', true)
             .or(`code.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%`)
             .limit(1);
@@ -383,7 +383,7 @@ async function openEditPieceModal(pieceId) {
         // Buscar dados da peça
         const { data: piece, error: pieceError } = await supabaseClient
             .from('pieces')
-            .select('id, code, name, supplier_id')
+            .select('id, code, name, supplier_id, location_id')
             .eq('id', pieceId)
             .single();
 
@@ -433,9 +433,11 @@ async function openEditPieceModal(pieceId) {
         document.getElementById('edit_piece_name').value = piece.name;
         document.getElementById('edit_supplier').value = piece.supplier_id;
 
-        // Definir localização atual no select
+        // Definir localização atual no select (usar location_id da peça se existir, senão calcular do estoque)
         const locationSelect = document.getElementById('edit_current_location');
-        if (maxQuantity > 0) {
+        if (piece.location_id) {
+            locationSelect.value = piece.location_id;
+        } else if (maxQuantity > 0) {
             // Encontrar o ID da localização com maior quantidade
             const locationWithMaxQuantity = Object.values(stockByLocation).find(loc => loc.quantity === maxQuantity);
             if (locationWithMaxQuantity) {
