@@ -21,9 +21,37 @@ function showTab(tabName) {
 }
 
 // Carregar informações do usuário logado
-document.addEventListener('DOMContentLoaded', function() {
-    loadUserInfo();
+document.addEventListener('DOMContentLoaded', async function() {
+    // Verificar acesso de administrador primeiro
+    const hasAccess = await checkAdminAccess();
+    if (hasAccess) {
+        loadUserInfo();
+    }
 });
+
+// Verificar se usuário é administrador
+async function checkAdminAccess() {
+    try {
+        const user = await getLoggedUser();
+        if (!user) {
+            window.location.href = 'index.html';
+            return false;
+        }
+
+        if (user.role !== 'admin') {
+            // Mostrar mensagem de acesso negado e redirecionar
+            alert('Acesso negado! Apenas administradores podem acessar esta página.');
+            window.location.href = 'dashboard.html';
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Erro ao verificar acesso:', error);
+        window.location.href = 'index.html';
+        return false;
+    }
+}
 
 async function loadUserInfo() {
     try {

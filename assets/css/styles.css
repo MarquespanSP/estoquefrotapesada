@@ -1071,3 +1071,113 @@ button:disabled {
         gap: 10px;
     }
 }
+
+/* Estilos para a página de exclusão de registros */
+.delete-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    background-color: #f8f9fa;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.3s ease;
+    margin-right: 4px;
+}
+
+.tab-btn:hover {
+    background-color: #e9ecef;
+    color: #333;
+}
+
+.tab-btn.active {
+    background-color: #2e8b57;
+    color: white;
+    border-bottom: 2px solid #2e8b57;
+}
+
+.tab-content {
+    display: none;
+    padding: 20px 0;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.search-section {
+    margin-bottom: 20px;
+}
+
+.results-section {
+    margin-top: 20px;
+}
+
+.results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.result-item {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.result-info {
+    flex: 1;
+    line-height: 1.6;
+}
+
+.result-actions {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.no-results {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 40px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+/* Responsividade para exclusão */
+@media (max-width: 768px) {
+    .delete-tabs {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .tab-btn {
+        border-radius: 4px;
+        margin-right: 0;
+    }
+
+    .result-item {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .result-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

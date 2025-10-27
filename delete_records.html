@@ -92,11 +92,15 @@ elete_records.html</path>
     <!-- Modal de Confirmação -->
     <div id="confirm-modal" class="modal">
         <div class="modal-content">
-            <h3>Confirmar Exclusão</h3>
-            <p id="confirm-message">Tem certeza que deseja excluir este item?</p>
-            <div class="modal-buttons">
-                <button onclick="closeModal()" class="btn">Cancelar</button>
-                <button onclick="confirmDelete()" class="btn btn-danger">Excluir</button>
+            <div class="modal-header">
+                <h3>🗑️ Confirmar Exclusão</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message">Tem certeza que deseja excluir este item?</p>
+                <div class="modal-actions">
+                    <button onclick="closeModal()" class="btn">Cancelar</button>
+                    <button onclick="confirmDelete()" class="btn btn-danger">Excluir</button>
+                </div>
             </div>
         </div>
     </div>
