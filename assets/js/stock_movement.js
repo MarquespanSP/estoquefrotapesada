@@ -2,6 +2,7 @@
 
 let selectedPiece = null;
 let selectedPieces = []; // Array para armazenar múltiplas peças selecionadas
+let currentEditingIndex = null; // Índice da peça sendo editada no modal
 
 // Carregar dados quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
@@ -10,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFormValidation();
     setupAddPieceButton();
     setupSaveAllButton();
+    setupLocationModal();
 });
 
 async function loadLocations() {
@@ -210,7 +212,13 @@ function updateSelectedPiecesTable() {
             row.appendChild(quantityCell);
 
             const locationCell = document.createElement('td');
-            locationCell.textContent = item.location ? `${item.location.code}${item.location.description ? ' - ' + item.location.description : ''}` : 'Local não definido';
+            const locationText = item.location ? `${item.location.code}${item.location.description ? ' - ' + item.location.description : ''}` : 'Local não definido';
+            locationCell.innerHTML = `
+                <span>${locationText}</span>
+                <button onclick="openLocationModal(${index})" class="btn-small" style="margin-left: 10px;" title="Editar local">
+                    ✏️
+                </button>
+            `;
             row.appendChild(locationCell);
 
             const actionsCell = document.createElement('td');
@@ -307,6 +315,93 @@ async function saveAllMovements() {
 
     } catch (error) {
         console.error('Erro ao salvar movimentações:', error);
+        showMessage(error.message, 'error');
+    }
+}
+
+// Funções do modal de localização
+function setupLocationModal() {
+    const modal = document.getElementById('location-modal');
+    const closeBtn = modal.querySelector('.close');
+    const locationForm = document.getElementById('location-form');
+
+    // Fechar modal
+    closeBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+        currentEditingIndex = null;
+    });
+
+    // Fechar modal clicando fora
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+            currentEditingIndex = null;
+        }
+    });
+
+    // Submeter formulário do local
+    locationForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveLocation();
+    });
+}
+
+function openLocationModal(index) {
+    currentEditingIndex = index;
+    const item = selectedPieces[index];
+
+    // Preencher informações da peça
+    const pieceInfo = document.getElementById('selected-piece-info');
+    pieceInfo.innerHTML = `
+        <strong>Peça:</strong> ${item.piece.code} - ${item.piece.name}<br>
+        <strong>Quantidade:</strong> ${item.quantity}
+    `;
+
+    // Preencher select com local atual
+    const locationSelect = document.getElementById('location');
+    if (item.location) {
+        locationSelect.value = item.location.id;
+    } else {
+        locationSelect.value = '';
+    }
+
+    // Abrir modal
+    document.getElementById('location-modal').style.display = 'block';
+}
+
+async function saveLocation() {
+    if (currentEditingIndex === null) return;
+
+    try {
+        const locationId = document.getElementById('location').value;
+
+        if (!locationId) {
+            throw new Error('Selecione um local');
+        }
+
+        // Buscar dados completos do local
+        const { data: location, error } = await supabaseClient
+            .from('locations')
+            .select('id, code, description')
+            .eq('id', locationId)
+            .single();
+
+        if (error) throw error;
+
+        // Atualizar local da peça
+        selectedPieces[currentEditingIndex].location = location;
+
+        // Atualizar tabela
+        updateSelectedPiecesTable();
+
+        // Fechar modal
+        document.getElementById('location-modal').style.display = 'none';
+        currentEditingIndex = null;
+
+        showMessage('Local atualizado com sucesso!', 'success');
+
+    } catch (error) {
+        console.error('Erro ao salvar local:', error);
         showMessage(error.message, 'error');
     }
 }

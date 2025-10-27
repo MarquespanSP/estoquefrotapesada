@@ -67,6 +67,28 @@
                 </div>
             </div>
 
+            <!-- Modal para editar local da peça -->
+            <div id="location-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Selecionar Local da Peça</h3>
+                        <button class="close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="selected-piece-info" class="selected-piece-info" style="margin-bottom: 20px;"></div>
+                        <form id="location-form">
+                            <div class="form-group">
+                                <label for="location">Local:</label>
+                                <select id="location" name="location" required>
+                                    <option value="">Selecione um local</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn">Salvar Local</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button type="button" id="save_all_movements_btn" style="display: none;">Salvar Todas Movimentações</button>
             </div>
