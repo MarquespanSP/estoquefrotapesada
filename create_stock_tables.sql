@@ -72,8 +72,12 @@ CREATE TABLE IF NOT EXISTS stock_movements (
     quantity INTEGER NOT NULL CHECK (quantity != 0),
     movement_type movement_type NOT NULL,
     created_by VARCHAR(255),
+    notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Adicionar coluna notes se não existir (para tabelas já existentes)
+ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS notes TEXT;
 
 -- Criar tabela de sessões (opcional, para controle de sessões)
 CREATE TABLE IF NOT EXISTS user_sessions (
