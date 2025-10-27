@@ -11,23 +11,14 @@ async function loadUserInfo() {
         if (user) {
             document.getElementById('user-info').textContent = `Usuário: ${user.fullName || user.username} (${user.role})`;
 
-            console.log('Usuário carregado:', user);
-            console.log('Role do usuário:', user.role);
-            console.log('Role lowercase:', user.role ? user.role.toLowerCase() : 'undefined');
-
             // Verificar se o usuário é administrador para mostrar o card de exclusão
             if (user.role && (user.role.toLowerCase() === 'admin' || user.role.toLowerCase() === 'administrator' || user.role.toLowerCase() === 'administrador')) {
                 // Card já está visível por padrão
-                console.log('Usuário administrador - card de exclusão visível');
             } else {
                 // Esconder o card de exclusão para usuários não administradores
-                console.log('Usuário não administrador - ocultando card de exclusão');
                 const deleteCard = document.querySelector('.stock-card a[href="delete_records.html"]');
                 if (deleteCard) {
-                    console.log('Encontrou card de exclusão, ocultando...');
                     deleteCard.closest('.stock-card').style.display = 'none';
-                } else {
-                    console.log('Card de exclusão não encontrado');
                 }
             }
         } else {
