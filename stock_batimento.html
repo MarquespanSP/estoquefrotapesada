@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Batimento de Estoque - Estoque Frota Pesada</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="logo.png" alt="Logo Estoque Frota Pesada" style="height: 40px; margin-right: 10px;">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="stock_control.html">Controle de Estoque</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="#" onclick="logoutUser()">Sair</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="form-container">
+            <h2>Batimento de Estoque</h2>
+            <div id="user-info" class="welcome-message">Carregando informações do usuário...</div>
+
+            <div id="access-denied" class="message error" style="display: none;">
+                <strong>Acesso negado!</strong><br>
+                Esta funcionalidade está disponível apenas para Administradores, Diretoria e Supervisores.
+            </div>
+
+            <div id="batimento-content" style="display: none;">
+                <form id="batimento-form">
+                    <div class="form-group">
+                        <label for="piece_search">Buscar Peça (Código ou Nome):</label>
+                        <input type="text" id="piece_search" name="piece_search" placeholder="Digite código ou nome da peça" autocomplete="off">
+                        <div id="piece_suggestions" class="suggestions" style="display: none;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="selected_piece">Peça Selecionada:</label>
+                        <input type="text" id="selected_piece" name="selected_piece" readonly placeholder="Selecione uma peça acima">
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Local no Estoque:</label>
+                        <select id="location" name="location" required>
+                            <option value="">Selecione um local</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="current_stock">Estoque Atual (Sistema):</label>
+                        <input type="number" id="current_stock" name="current_stock" readonly placeholder="Será calculado automaticamente">
+                    </div>
+                    <div class="form-group">
+                        <label for="physical_stock">Estoque Físico (Contagem):</label>
+                        <input type="number" id="physical_stock" name="physical_stock" required min="0" placeholder="Digite a quantidade física contada" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="adjustment_reason">Motivo do Ajuste:</label>
+                        <textarea id="adjustment_reason" name="adjustment_reason" placeholder="Descreva o motivo do ajuste de estoque" rows="3" required></textarea>
+                    </div>
+                    <button type="submit">Realizar Batimento</button>
+                </form>
+
+                <div class="batimento-history">
+                    <h3>Histórico de Batimentos</h3>
+                    <div id="batimento-history-container">
+                        <!-- Histórico será carregado aqui -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="message" class="message" style="display: none;"></div>
+        </div>
+    </main>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Script de autenticação -->
+    <script src="assets/js/auth.js"></script>
+    <!-- Script de batimento -->
+    <script src="assets/js/stock_batimento.js"></script>
+</body>
+</html>
