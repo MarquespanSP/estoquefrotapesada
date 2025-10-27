@@ -105,15 +105,20 @@ async function performSearch(searchTerm) {
 
         const piece = pieces[0];
 
-        // Buscar fornecedor
-        const { data: supplier, error: supplierError } = await supabaseClient
-            .from('suppliers')
-            .select('name')
-            .eq('id', piece.supplier_id)
-            .single();
+        // Buscar fornecedor (apenas se supplier_id não for null)
+        let supplier = null;
+        if (piece.supplier_id) {
+            const { data: supplierData, error: supplierError } = await supabaseClient
+                .from('suppliers')
+                .select('name')
+                .eq('id', piece.supplier_id)
+                .single();
 
-        if (supplierError) {
-            console.warn('Erro ao buscar fornecedor:', supplierError);
+            if (supplierError) {
+                console.warn('Erro ao buscar fornecedor:', supplierError);
+            } else {
+                supplier = supplierData;
+            }
         }
 
         // Buscar movimentações de estoque para calcular quantidade por local
@@ -174,15 +179,20 @@ async function performSearchAll() {
         // Para cada peça, buscar fornecedor e movimentações
         const results = [];
         for (const piece of pieces) {
-            // Buscar fornecedor
-            const { data: supplier, error: supplierError } = await supabaseClient
-                .from('suppliers')
-                .select('name')
-                .eq('id', piece.supplier_id)
-                .single();
+            // Buscar fornecedor (apenas se supplier_id não for null)
+            let supplier = null;
+            if (piece.supplier_id) {
+                const { data: supplierData, error: supplierError } = await supabaseClient
+                    .from('suppliers')
+                    .select('name')
+                    .eq('id', piece.supplier_id)
+                    .single();
 
-            if (supplierError) {
-                console.warn('Erro ao buscar fornecedor:', supplierError);
+                if (supplierError) {
+                    console.warn('Erro ao buscar fornecedor:', supplierError);
+                } else {
+                    supplier = supplierData;
+                }
             }
 
             // Buscar movimentações de estoque para calcular quantidade por local
