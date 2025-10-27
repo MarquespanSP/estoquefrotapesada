@@ -268,8 +268,8 @@ async function loadBatimentoHistory() {
                 created_at,
                 created_by,
                 notes,
-                pieces(code, name),
-                locations(code, description)
+                pieces!inner(code, name),
+                locations!inner(code, description)
             `)
             .ilike('notes', '%BATIMENTO%')
             .order('created_at', { ascending: false })
