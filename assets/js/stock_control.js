@@ -13,9 +13,10 @@ async function loadUserInfo() {
 
             console.log('Usuário carregado:', user);
             console.log('Role do usuário:', user.role);
+            console.log('Role lowercase:', user.role ? user.role.toLowerCase() : 'undefined');
 
             // Verificar se o usuário é administrador para mostrar o card de exclusão
-            if (user.role && (user.role.toLowerCase() === 'admin' || user.role.toLowerCase() === 'administrator')) {
+            if (user.role && (user.role.toLowerCase() === 'admin' || user.role.toLowerCase() === 'administrator' || user.role.toLowerCase() === 'administrador')) {
                 // Card já está visível por padrão
                 console.log('Usuário administrador - card de exclusão visível');
             } else {
