@@ -38,7 +38,12 @@
                 </div>
                 <div class="form-group">
                     <label for="piece_search">Buscar Peça (Código ou Nome):</label>
-                    <input type="text" id="piece_search" name="piece_search" placeholder="Digite código ou nome da peça" autocomplete="off">
+                    <div class="search-container">
+                        <input type="text" id="piece_search" name="piece_search" placeholder="Digite código ou nome da peça" autocomplete="off">
+                        <button type="button" id="add-piece-btn" class="add-btn" title="Cadastrar nova peça">
+                            <span>+</span>
+                        </button>
+                    </div>
                     <div id="piece_suggestions" class="suggestions" style="display: none;"></div>
                 </div>
                 <div class="form-group">
@@ -84,6 +89,63 @@
                                 </select>
                             </div>
                             <button type="submit" class="btn">Salvar Local</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para cadastrar nova peça -->
+            <div id="piece-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Cadastrar Nova Peça</h3>
+                        <button class="close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="piece-form">
+                            <div class="form-group">
+                                <label for="modal_piece_code">Código da Peça:</label>
+                                <input type="text" id="modal_piece_code" name="modal_piece_code" required placeholder="Digite o código da peça" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="modal_piece_name">Nome da Peça:</label>
+                                <input type="text" id="modal_piece_name" name="modal_piece_name" required placeholder="Digite o nome da peça" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="modal_supplier">Fornecedor:</label>
+                                <div class="supplier-container">
+                                    <select id="modal_supplier" name="modal_supplier" required>
+                                        <option value="">Selecione um fornecedor</option>
+                                    </select>
+                                    <button type="button" id="modal_add_supplier_btn" class="add-btn" title="Adicionar novo fornecedor">
+                                        <span>+</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn">Cadastrar Peça</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para adicionar fornecedor -->
+            <div id="supplier-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Adicionar Novo Fornecedor</h3>
+                        <button class="close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="supplier-form">
+                            <div class="form-group">
+                                <label for="supplier_name">Nome do Fornecedor:</label>
+                                <input type="text" id="supplier_name" name="supplier_name" required placeholder="Digite o nome do fornecedor" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="supplier_contact">Informações de Contato:</label>
+                                <textarea id="supplier_contact" name="supplier_contact" placeholder="Telefone, email, endereço, etc." rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn">Adicionar Fornecedor</button>
                         </form>
                     </div>
                 </div>

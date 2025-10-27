@@ -7,11 +7,14 @@ let currentEditingIndex = null; // Índice da peça sendo editada no modal
 // Carregar dados quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
     loadLocations();
+    loadSuppliers();
     setupPieceSearch();
     setupFormValidation();
     setupAddPieceButton();
     setupSaveAllButton();
     setupLocationModal();
+    setupPieceModal();
+    setupSupplierModal();
 });
 
 async function loadLocations() {
@@ -402,6 +405,226 @@ async function saveLocation() {
 
     } catch (error) {
         console.error('Erro ao salvar local:', error);
+        showMessage(error.message, 'error');
+    }
+}
+
+// Funções do modal de cadastro de peça
+function setupPieceModal() {
+    const addPieceBtn = document.getElementById('add-piece-btn');
+    const modal = document.getElementById('piece-modal');
+    const closeBtn = modal.querySelector('.close');
+    const pieceForm = document.getElementById('piece-form');
+
+    // Abrir modal
+    addPieceBtn.addEventListener('click', function() {
+        modal.style.display = 'block';
+    });
+
+    // Fechar modal
+    closeBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+    });
+
+    // Fechar modal clicando fora
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // Submeter formulário da peça
+    pieceForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        registerPiece();
+    });
+}
+
+async function loadSuppliers() {
+    try {
+        const { data: suppliers, error } = await supabaseClient
+            .from('suppliers')
+            .select('id, name')
+            .eq('is_active', true)
+            .order('name');
+
+        if (error) throw error;
+
+        const supplierSelects = ['supplier', 'modal_supplier'];
+        supplierSelects.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            if (select) {
+                select.innerHTML = '<option value="">Selecione um fornecedor</option>';
+                suppliers.forEach(supplier => {
+                    const option = document.createElement('option');
+                    option.value = supplier.id;
+                    option.textContent = supplier.name;
+                    select.appendChild(option);
+                });
+            }
+        });
+    } catch (error) {
+        console.error('Erro ao carregar fornecedores:', error);
+        showMessage('Erro ao carregar fornecedores. Tente novamente.', 'error');
+    }
+}
+
+async function registerPiece() {
+    try {
+        const pieceCode = document.getElementById('modal_piece_code').value.trim();
+        const pieceName = document.getElementById('modal_piece_name').value.trim();
+        const supplierId = document.getElementById('modal_supplier').value;
+
+        // Validações
+        if (!pieceCode) {
+            throw new Error('Código da peça é obrigatório');
+        }
+        if (!pieceName) {
+            throw new Error('Nome da peça é obrigatório');
+        }
+        if (!supplierId) {
+            throw new Error('Fornecedor é obrigatório');
+        }
+
+        // Verificar se código já existe
+        const { data: existingPiece, error: checkError } = await supabaseClient
+            .from('pieces')
+            .select('id')
+            .eq('code', pieceCode)
+            .eq('is_active', true);
+
+        if (checkError) throw checkError;
+
+        if (existingPiece && existingPiece.length > 0) {
+            throw new Error('Já existe uma peça com este código');
+        }
+
+        // Obter usuário logado
+        const userSession = await getLoggedUser();
+        if (!userSession) {
+            throw new Error('Usuário não autenticado');
+        }
+
+        // Cadastrar peça
+        const { data: newPiece, error: insertError } = await supabaseClient
+            .from('pieces')
+            .insert({
+                code: pieceCode,
+                name: pieceName,
+                supplier_id: supplierId,
+                created_by: userSession.username,
+                created_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+
+        if (insertError) {
+            throw new Error('Erro ao cadastrar peça: ' + insertError.message);
+        }
+
+        console.log('Peça cadastrada com sucesso:', newPiece);
+
+        // Fechar modal e limpar formulário
+        document.getElementById('piece-modal').style.display = 'none';
+        document.getElementById('piece-form').reset();
+
+        showMessage('Peça cadastrada com sucesso!', 'success');
+
+    } catch (error) {
+        console.error('Erro ao cadastrar peça:', error);
+        showMessage(error.message, 'error');
+    }
+}
+
+// Funções do modal de fornecedor
+function setupSupplierModal() {
+    const addSupplierBtn = document.getElementById('modal_add_supplier_btn');
+    const modal = document.getElementById('supplier-modal');
+    const closeBtn = modal.querySelector('.close');
+    const supplierForm = document.getElementById('supplier-form');
+
+    // Abrir modal
+    addSupplierBtn.addEventListener('click', function() {
+        modal.style.display = 'block';
+    });
+
+    // Fechar modal
+    closeBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+    });
+
+    // Fechar modal clicando fora
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    // Submeter formulário do fornecedor
+    supplierForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        registerSupplier();
+    });
+}
+
+async function registerSupplier() {
+    try {
+        const supplierName = document.getElementById('supplier_name').value.trim();
+        const supplierContact = document.getElementById('supplier_contact').value.trim();
+
+        // Validações
+        if (!supplierName) {
+            throw new Error('Nome do fornecedor é obrigatório');
+        }
+
+        // Verificar se nome já existe
+        const { data: existingSupplier, error: checkError } = await supabaseClient
+            .from('suppliers')
+            .select('id')
+            .eq('name', supplierName)
+            .eq('is_active', true);
+
+        if (checkError) throw checkError;
+
+        if (existingSupplier && existingSupplier.length > 0) {
+            throw new Error('Já existe um fornecedor com este nome');
+        }
+
+        // Obter usuário logado
+        const userSession = await getLoggedUser();
+        if (!userSession) {
+            throw new Error('Usuário não autenticado');
+        }
+
+        // Cadastrar fornecedor
+        const { data: newSupplier, error: insertError } = await supabaseClient
+            .from('suppliers')
+            .insert({
+                name: supplierName,
+                contact_info: supplierContact,
+                created_by: userSession.username,
+                created_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+
+        if (insertError) {
+            throw new Error('Erro ao cadastrar fornecedor: ' + insertError.message);
+        }
+
+        console.log('Fornecedor cadastrado com sucesso:', newSupplier);
+
+        // Recarregar fornecedores nos selects
+        await loadSuppliers();
+
+        // Fechar modal e limpar formulário
+        document.getElementById('supplier-modal').style.display = 'none';
+        document.getElementById('supplier-form').reset();
+
+        showMessage('Fornecedor cadastrado com sucesso!', 'success');
+
+    } catch (error) {
+        console.error('Erro ao cadastrar fornecedor:', error);
         showMessage(error.message, 'error');
     }
 }
