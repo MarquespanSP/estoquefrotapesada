@@ -462,6 +462,7 @@ async function updatePiece() {
         const pieceCode = document.getElementById('edit_piece_code').value.trim();
         const pieceName = document.getElementById('edit_piece_name').value.trim();
         const supplierId = document.getElementById('edit_supplier').value;
+        const locationId = document.getElementById('edit_current_location').value;
 
         // Validações
         if (!pieceCode) {
@@ -494,16 +495,26 @@ async function updatePiece() {
             throw new Error('Usuário não autenticado');
         }
 
+        // Preparar dados para atualização
+        const updateData = {
+            code: pieceCode,
+            name: pieceName,
+            supplier_id: supplierId,
+            updated_by: userSession.username,
+            updated_at: new Date().toISOString()
+        };
+
+        // Adicionar location_id se selecionado
+        if (locationId) {
+            updateData.location_id = locationId;
+        } else {
+            updateData.location_id = null;
+        }
+
         // Atualizar peça
         const { data: updatedPiece, error: updateError } = await supabaseClient
             .from('pieces')
-            .update({
-                code: pieceCode,
-                name: pieceName,
-                supplier_id: supplierId,
-                updated_by: userSession.username,
-                updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq('id', pieceId)
             .select()
             .single();
