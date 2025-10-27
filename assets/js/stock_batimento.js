@@ -138,17 +138,14 @@ async function searchPieces(query) {
     }
 }
 
-function selectPiece(piece) {
+async function selectPiece(piece) {
     selectedPiece = piece;
     document.getElementById('piece_search').value = `${piece.code} - ${piece.name}`;
     document.getElementById('selected_piece').value = `${piece.code} - ${piece.name}`;
     document.getElementById('piece_suggestions').style.display = 'none';
 
-    // Calcular estoque atual se local já estiver selecionado
-    const locationId = document.getElementById('location').value;
-    if (locationId) {
-        calculateCurrentStock(piece.id, locationId);
-    }
+    // Preencher automaticamente o local com o estoque atual da peça
+    await autoFillLocation(piece.id);
 }
 
 async function calculateCurrentStock(pieceId, locationId) {
@@ -167,6 +164,69 @@ async function calculateCurrentStock(pieceId, locationId) {
     } catch (error) {
         console.error('Erro ao calcular estoque atual:', error);
         document.getElementById('current_stock').value = 'Erro ao calcular';
+    }
+}
+
+async function autoFillLocation(pieceId) {
+    try {
+        // Buscar o local com maior estoque para esta peça
+        const { data: stockByLocation, error } = await supabaseClient
+            .from('stock_movements')
+            .select(`
+                location_id,
+                quantity,
+                locations!inner(code, description)
+            `)
+            .eq('piece_id', pieceId);
+
+        if (error) throw error;
+
+        if (stockByLocation.length === 0) {
+            // Se não há estoque, deixar o campo vazio
+            document.getElementById('location').value = '';
+            document.getElementById('current_stock').value = '0';
+            return;
+        }
+
+        // Calcular estoque por local
+        const stockMap = {};
+        stockByLocation.forEach(movement => {
+            if (!stockMap[movement.location_id]) {
+                stockMap[movement.location_id] = {
+                    total: 0,
+                    location: movement.locations
+                };
+            }
+            stockMap[movement.location_id].total += movement.quantity;
+        });
+
+        // Encontrar o local com maior estoque positivo
+        let bestLocation = null;
+        let maxStock = 0;
+
+        for (const [locationId, data] of Object.entries(stockMap)) {
+            if (data.total > maxStock) {
+                maxStock = data.total;
+                bestLocation = locationId;
+            }
+        }
+
+        if (bestLocation) {
+            // Preencher o local automaticamente
+            document.getElementById('location').value = bestLocation;
+            // Calcular estoque atual para este local
+            calculateCurrentStock(pieceId, bestLocation);
+        } else {
+            // Se não há estoque positivo, deixar vazio
+            document.getElementById('location').value = '';
+            document.getElementById('current_stock').value = '0';
+        }
+
+    } catch (error) {
+        console.error('Erro ao preencher local automaticamente:', error);
+        // Em caso de erro, deixar campos vazios
+        document.getElementById('location').value = '';
+        document.getElementById('current_stock').value = '';
     }
 }
 
