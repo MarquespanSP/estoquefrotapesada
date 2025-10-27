@@ -4,7 +4,24 @@
 document.addEventListener('DOMContentLoaded', function() {
     loadLocations();
     setupFormValidation();
+    loadUserInfo();
 });
+
+async function loadUserInfo() {
+    try {
+        const user = await getLoggedUser();
+        if (user) {
+            document.getElementById('user-info').textContent = `Usuário: ${user.fullName || user.username} (${user.role})`;
+        } else {
+            // Redirecionar para login se não estiver logado
+            window.location.href = 'index.html';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar informações do usuário:', error);
+        // Redirecionar para login em caso de erro
+        window.location.href = 'index.html';
+    }
+}
 
 function setupFormValidation() {
     const locationCodeInput = document.getElementById('location_code');
