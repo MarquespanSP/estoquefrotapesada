@@ -121,6 +121,20 @@ async function performSearch(searchTerm) {
             }
         }
 
+        // Buscar localização da peça (se definida)
+        let pieceLocation = null;
+        if (piece.location_id) {
+            const { data: locData, error: locError } = await supabaseClient
+                .from('locations')
+                .select('code, description')
+                .eq('id', piece.location_id)
+                .single();
+
+            if (!locError) {
+                pieceLocation = locData;
+            }
+        }
+
         // Buscar movimentações de estoque para calcular quantidade por local
         const { data: movements, error: movementError } = await supabaseClient
             .from('stock_movements')
@@ -150,7 +164,7 @@ async function performSearch(searchTerm) {
         });
 
         // Exibir resultados
-        displaySearchResults(piece, supplier?.name, stockByLocation);
+        displaySearchResults(piece, supplier?.name, stockByLocation, pieceLocation);
 
     } catch (error) {
         console.error('Erro na busca:', error.message);
@@ -240,7 +254,7 @@ async function performSearchAll() {
     }
 }
 
-function displaySearchResults(piece, supplierName, stockByLocation) {
+function displaySearchResults(piece, supplierName, stockByLocation, pieceLocation) {
     const resultsDiv = document.getElementById('search-results');
     const detailsDiv = document.getElementById('piece-details');
 
@@ -248,6 +262,7 @@ function displaySearchResults(piece, supplierName, stockByLocation) {
         <div class="piece-info">
             <h4>${piece.code} - ${piece.name}</h4>
             <p><strong>Fornecedor:</strong> ${supplierName || 'Não informado'}</p>
+            ${pieceLocation ? `<p><strong>Localização Principal:</strong> ${pieceLocation.code}${pieceLocation.description ? ` - ${pieceLocation.description}` : ''}</p>` : ''}
             <div class="piece-actions">
                 <button onclick="openEditPieceModal('${piece.id}')" class="btn btn-secondary" title="Editar peça">
                     ✏️ Editar Peça
