@@ -271,29 +271,52 @@ function displayAllSearchResults(results) {
                         <th>Código</th>
                         <th>Nome da Peça</th>
                         <th>Fornecedor</th>
-                        <th>Localização e Quantidade</th>
+                        <th>Localização</th>
+                        <th>Quantidade</th>
                     </tr>
                 </thead>
                 <tbody>
     `;
 
     results.forEach(result => {
-        const locationsHTML = Object.keys(result.stockByLocation).length > 0 ?
-            Object.values(result.stockByLocation).map(location =>
-                `<div class="location-info">
-                    <strong>${location.code}</strong>${location.description ? ` - ${location.description}` : ''}: ${location.quantity} unidade(s)
-                </div>`
-            ).join('') :
-            '<span class="no-stock">Peça não encontrada em nenhum local do estoque</span>';
+        const locations = Object.values(result.stockByLocation);
 
-        tableHTML += `
-            <tr>
-                <td class="piece-code">${result.piece.code}</td>
-                <td class="piece-name">${result.piece.name}</td>
-                <td class="supplier-info">${result.supplierName || 'Não informado'}</td>
-                <td>${locationsHTML}</td>
-            </tr>
-        `;
+        if (locations.length === 0) {
+            // Peça sem estoque em nenhum local
+            tableHTML += `
+                <tr>
+                    <td class="piece-code">${result.piece.code}</td>
+                    <td class="piece-name">${result.piece.name}</td>
+                    <td class="supplier-info">${result.supplierName || 'Não informado'}</td>
+                    <td class="no-stock">Nenhum local</td>
+                    <td class="no-stock">0</td>
+                </tr>
+            `;
+        } else {
+            // Para cada local com estoque, criar uma linha separada
+            locations.forEach((location, index) => {
+                if (index === 0) {
+                    // Primeira linha inclui código, nome e fornecedor
+                    tableHTML += `
+                        <tr>
+                            <td class="piece-code" rowspan="${locations.length}">${result.piece.code}</td>
+                            <td class="piece-name" rowspan="${locations.length}">${result.piece.name}</td>
+                            <td class="supplier-info" rowspan="${locations.length}">${result.supplierName || 'Não informado'}</td>
+                            <td class="location-info">${location.code}${location.description ? ` - ${location.description}` : ''}</td>
+                            <td class="quantity-info">${location.quantity}</td>
+                        </tr>
+                    `;
+                } else {
+                    // Linhas subsequentes só incluem localização e quantidade
+                    tableHTML += `
+                        <tr>
+                            <td class="location-info">${location.code}${location.description ? ` - ${location.description}` : ''}</td>
+                            <td class="quantity-info">${location.quantity}</td>
+                        </tr>
+                    `;
+                }
+            });
+        }
     });
 
     tableHTML += `

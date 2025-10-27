@@ -360,6 +360,12 @@ button:disabled {
     font-size: 13px;
 }
 
+.results-table .quantity-info {
+    font-weight: bold;
+    color: #2c3e50;
+    text-align: center;
+}
+
 .results-table .no-stock {
     color: #dc3545;
     font-style: italic;
