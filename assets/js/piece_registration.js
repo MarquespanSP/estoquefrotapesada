@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadSuppliers();
     setupFormValidation();
     setupSupplierModal();
+    setupImportExportButtons();
 });
 
 async function loadSuppliers() {
@@ -196,5 +197,276 @@ async function registerPiece() {
     } catch (error) {
         console.error('Erro no cadastro de peça:', error.message);
         showMessage('Erro no cadastro: ' + error.message, 'error');
+    }
+}
+
+// Funções de importação e exportação
+function setupImportExportButtons() {
+    const exportBtn = document.getElementById('export-btn');
+    const importBtn = document.getElementById('import-btn');
+    const downloadTemplateBtn = document.getElementById('download-template-btn');
+
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportPieces);
+    }
+
+    if (importBtn) {
+        importBtn.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx,.xls';
+            input.onchange = handleImport;
+            input.click();
+        });
+    }
+
+    if (downloadTemplateBtn) {
+        downloadTemplateBtn.addEventListener('click', downloadTemplate);
+    }
+}
+
+async function exportPieces() {
+    try {
+        showMessage('Exportando peças...', 'info');
+
+        const { data: pieces, error } = await supabaseClient
+            .from('pieces')
+            .select(`
+                code,
+                name,
+                suppliers (name)
+            `)
+            .eq('is_active', true)
+            .order('code');
+
+        if (error) throw error;
+
+        // Preparar dados para Excel
+        const excelData = pieces.map(piece => ({
+            'Código da Peça': piece.code,
+            'Nome da Peça': piece.name,
+            'Fornecedor': piece.suppliers?.name || ''
+        }));
+
+        // Criar workbook
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(excelData);
+
+        // Ajustar largura das colunas
+        const colWidths = [
+            { wch: 15 }, // Código da Peça
+            { wch: 30 }, // Nome da Peça
+            { wch: 25 }  // Fornecedor
+        ];
+        ws['!cols'] = colWidths;
+
+        XLSX.utils.book_append_sheet(wb, ws, 'Peças');
+
+        // Baixar arquivo
+        const fileName = `pecas_${new Date().toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+
+        showMessage('Peças exportadas com sucesso!', 'success');
+
+    } catch (error) {
+        console.error('Erro ao exportar peças:', error);
+        showMessage('Erro ao exportar peças: ' + error.message, 'error');
+    }
+}
+
+function downloadTemplate() {
+    try {
+        // Criar dados de exemplo
+        const templateData = [
+            {
+                'Código da Peça': 'ABC001',
+                'Nome da Peça': 'Filtro de Óleo',
+                'Fornecedor': 'Fornecedor Exemplo Ltda'
+            },
+            {
+                'Código da Peça': 'DEF002',
+                'Nome da Peça': 'Pastilha de Freio',
+                'Fornecedor': 'Auto Peças Brasil'
+            },
+            {
+                'Código da Peça': 'GHI003',
+                'Nome da Peça': 'Correia de Acessórios',
+                'Fornecedor': '' // Campo opcional
+            }
+        ];
+
+        // Criar workbook
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(templateData);
+
+        // Ajustar largura das colunas
+        const colWidths = [
+            { wch: 15 }, // Código da Peça
+            { wch: 30 }, // Nome da Peça
+            { wch: 25 }  // Fornecedor
+        ];
+        ws['!cols'] = colWidths;
+
+        XLSX.utils.book_append_sheet(wb, ws, 'Modelo_Peças');
+
+        // Baixar arquivo
+        XLSX.writeFile(wb, 'modelo_importacao_pecas.xlsx');
+
+        showMessage('Modelo baixado com sucesso!', 'success');
+
+    } catch (error) {
+        console.error('Erro ao baixar modelo:', error);
+        showMessage('Erro ao baixar modelo: ' + error.message, 'error');
+    }
+}
+
+async function handleImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+        showMessage('Processando arquivo...', 'info');
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // Pegar primeira planilha
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+
+                // Converter para JSON
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                // Remover cabeçalho
+                jsonData.shift();
+
+                // Processar dados
+                await processImportData(jsonData);
+
+            } catch (error) {
+                console.error('Erro ao processar arquivo:', error);
+                showMessage('Erro ao processar arquivo: ' + error.message, 'error');
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+
+    } catch (error) {
+        console.error('Erro ao importar arquivo:', error);
+        showMessage('Erro ao importar arquivo: ' + error.message, 'error');
+    }
+}
+
+async function processImportData(rows) {
+    try {
+        const userSession = await getLoggedUser();
+        if (!userSession) {
+            throw new Error('Usuário não autenticado');
+        }
+
+        let successCount = 0;
+        let errorCount = 0;
+        const errors = [];
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const [code, name, supplierName] = row;
+
+            // Pular linhas vazias
+            if (!code && !name) continue;
+
+            try {
+                // Validações obrigatórias
+                if (!code || !name) {
+                    throw new Error(`Linha ${i + 2}: Código e Nome da peça são obrigatórios`);
+                }
+
+                const pieceCode = code.toString().trim().toUpperCase();
+                const pieceName = name.toString().trim();
+
+                // Verificar se a peça já existe
+                const { data: existingPiece } = await supabaseClient
+                    .from('pieces')
+                    .select('code')
+                    .eq('code', pieceCode)
+                    .single();
+
+                if (existingPiece) {
+                    throw new Error(`Peça ${pieceCode} já existe`);
+                }
+
+                // Processar fornecedor (opcional)
+                let supplierId = null;
+                if (supplierName && supplierName.toString().trim()) {
+                    const supplier = supplierName.toString().trim();
+
+                    // Verificar se fornecedor existe
+                    let { data: existingSupplier } = await supabaseClient
+                        .from('suppliers')
+                        .select('id')
+                        .eq('name', supplier)
+                        .eq('is_active', true)
+                        .single();
+
+                    // Se não existe, criar
+                    if (!existingSupplier) {
+                        const { data: newSupplier, error: supplierError } = await supabaseClient
+                            .from('suppliers')
+                            .insert([{
+                                name: supplier,
+                                created_by: userSession.username,
+                                created_at: new Date().toISOString(),
+                                is_active: true
+                            }])
+                            .select('id')
+                            .single();
+
+                        if (supplierError) throw supplierError;
+                        supplierId = newSupplier.id;
+                    } else {
+                        supplierId = existingSupplier.id;
+                    }
+                }
+
+                // Inserir peça
+                const { error: insertError } = await supabaseClient
+                    .from('pieces')
+                    .insert([{
+                        code: pieceCode,
+                        name: pieceName,
+                        supplier_id: supplierId,
+                        created_by: userSession.username,
+                        created_at: new Date().toISOString(),
+                        is_active: true
+                    }]);
+
+                if (insertError) throw insertError;
+
+                successCount++;
+
+            } catch (error) {
+                errorCount++;
+                errors.push(`Linha ${i + 2}: ${error.message}`);
+            }
+        }
+
+        // Recarregar fornecedores após possíveis criações
+        await loadSuppliers();
+
+        // Mostrar resultado
+        let message = `Importação concluída! ${successCount} peças importadas com sucesso.`;
+        if (errorCount > 0) {
+            message += ` ${errorCount} erros encontrados.`;
+            console.error('Erros de importação:', errors);
+        }
+
+        showMessage(message, errorCount > 0 ? 'warning' : 'success');
+
+    } catch (error) {
+        console.error('Erro no processamento da importação:', error);
+        showMessage('Erro na importação: ' + error.message, 'error');
     }
 }

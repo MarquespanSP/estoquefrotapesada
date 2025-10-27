@@ -27,7 +27,15 @@
 
     <main class="container">
         <div class="form-container">
-            <h2>Cadastro de Peça</h2>
+            <div class="form-header">
+                <h2>Cadastro de Peça</h2>
+                <div class="import-export-buttons">
+                    <button type="button" id="export-btn" class="btn btn-secondary">📊 Exportar Peças</button>
+                    <button type="button" id="import-btn" class="btn btn-secondary">📤 Importar Peças</button>
+                    <button type="button" id="download-template-btn" class="btn btn-info">📋 Baixar Modelo</button>
+                </div>
+            </div>
+
             <form id="piece-form">
                 <div class="form-group">
                     <label for="piece_code">Código da Peça:</label>
@@ -79,6 +87,8 @@
 
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SheetJS para manipulação de Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Script de autenticação -->
     <script src="assets/js/auth.js"></script>
     <!-- Script de cadastro de peças -->
