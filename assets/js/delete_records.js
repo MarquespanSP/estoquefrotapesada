@@ -25,13 +25,16 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Verificar acesso de administrador primeiro
     const hasAccess = await checkAdminAccess();
     if (hasAccess) {
-        loadUserInfo();
+        await loadUserInfo();
     }
 });
 
 // Verificar se usuário é administrador
 async function checkAdminAccess() {
     try {
+        // Aguardar um pouco para garantir que o auth.js tenha carregado
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         const user = await getLoggedUser();
         if (!user) {
             window.location.href = 'index.html';
