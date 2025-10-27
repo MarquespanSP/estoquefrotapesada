@@ -44,6 +44,63 @@
                     <!-- Detalhes da peça serão exibidos aqui -->
                 </div>
             </div>
+
+            <!-- Modal para editar peça -->
+            <div id="edit-piece-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Editar Peça</h3>
+                        <button class="close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="edit-piece-form">
+                            <div class="form-group">
+                                <label for="edit_piece_code">Código da Peça:</label>
+                                <input type="text" id="edit_piece_code" name="edit_piece_code" required placeholder="Digite o código da peça" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_piece_name">Nome da Peça:</label>
+                                <input type="text" id="edit_piece_name" name="edit_piece_name" required placeholder="Digite o nome da peça" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_supplier">Fornecedor:</label>
+                                <div class="supplier-container">
+                                    <select id="edit_supplier" name="edit_supplier" required>
+                                        <option value="">Selecione um fornecedor</option>
+                                    </select>
+                                    <button type="button" id="edit_add_supplier_btn" class="add-btn" title="Adicionar novo fornecedor">
+                                        <span>+</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn">Salvar Alterações</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para adicionar fornecedor -->
+            <div id="supplier-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Adicionar Novo Fornecedor</h3>
+                        <button class="close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="supplier-form">
+                            <div class="form-group">
+                                <label for="supplier_name">Nome do Fornecedor:</label>
+                                <input type="text" id="supplier_name" name="supplier_name" required placeholder="Digite o nome do fornecedor" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="supplier_contact">Informações de Contato:</label>
+                                <textarea id="supplier_contact" name="supplier_contact" placeholder="Telefone, email, endereço, etc." rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn">Adicionar Fornecedor</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
