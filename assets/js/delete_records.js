@@ -38,7 +38,7 @@ async function checkAdminAccess() {
             return false;
         }
 
-        if (user.role !== 'admin') {
+        if (!user.role || (user.role.toLowerCase() !== 'admin' && user.role.toLowerCase() !== 'administrator')) {
             // Mostrar mensagem de acesso negado e redirecionar
             alert('Acesso negado! Apenas administradores podem acessar esta página.');
             window.location.href = 'dashboard.html';
