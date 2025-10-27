@@ -258,6 +258,9 @@ function displaySearchResults(piece, supplierName, stockByLocation, pieceLocatio
     const resultsDiv = document.getElementById('search-results');
     const detailsDiv = document.getElementById('piece-details');
 
+    // Calcular quantidade total em estoque
+    const totalQuantity = Object.values(stockByLocation).reduce((sum, location) => sum + location.quantity, 0);
+
     detailsDiv.innerHTML = `
         <div class="piece-info">
             <h4>${piece.code} - ${piece.name}</h4>
@@ -268,16 +271,9 @@ function displaySearchResults(piece, supplierName, stockByLocation, pieceLocatio
                     ✏️ Editar Peça
                 </button>
             </div>
-            <div class="stock-locations">
-                <h5>Localização e Quantidade em Estoque:</h5>
-                ${Object.keys(stockByLocation).length > 0 ?
-                    Object.values(stockByLocation).map(location => `
-                        <div class="location-stock">
-                            <strong>${location.code}</strong>${location.description ? ` - ${location.description}` : ''}: ${location.quantity} unidade(s)
-                        </div>
-                    `).join('') :
-                    '<p>Peça não encontrada em nenhum local do estoque.</p>'
-                }
+            <div class="total-quantity">
+                <h5>Quantidade Total em Estoque:</h5>
+                <strong style="font-size: 1.5em; color: #007bff;">${totalQuantity} unidade(s)</strong>
             </div>
         </div>
     `;
