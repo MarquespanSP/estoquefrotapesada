@@ -134,10 +134,6 @@ async function loadLocations() {
                     ${location.description ? `<br><small>${location.description}</small>` : ''}
                     <br><small>Cadastrado em: ${new Date(location.created_at).toLocaleString('pt-BR')} por ${location.created_by}</small>
                 </div>
-                <div class="location-actions">
-                    <button class="btn-small" onclick="editLocation(${location.id})">Editar</button>
-                    <button class="btn-small btn-danger" onclick="deleteLocation(${location.id}, ${JSON.stringify(location.code)})">Excluir</button>
-                </div>
             `;
             container.appendChild(locationDiv);
         });
