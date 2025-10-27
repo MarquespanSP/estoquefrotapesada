@@ -14,8 +14,10 @@ async function loadUserInfo() {
             // Verificar se o usuário é administrador para mostrar o card de exclusão
             if (user.role && (user.role.toLowerCase() === 'admin' || user.role.toLowerCase() === 'administrator')) {
                 // Card já está visível por padrão
+                console.log('Usuário administrador - card de exclusão visível');
             } else {
                 // Esconder o card de exclusão para usuários não administradores
+                console.log('Usuário não administrador - ocultando card de exclusão');
                 const deleteCard = document.querySelector('.stock-card a[href="delete_records.html"]');
                 if (deleteCard) {
                     deleteCard.closest('.stock-card').style.display = 'none';
