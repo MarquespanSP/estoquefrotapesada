@@ -4,6 +4,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     setupSearch();
     loadSuppliers();
+    loadLocations();
     setupEditPieceModal();
     setupSupplierModal();
 });
@@ -421,7 +422,27 @@ async function openEditPieceModal(pieceId) {
         document.getElementById('edit_piece_code').value = piece.code;
         document.getElementById('edit_piece_name').value = piece.name;
         document.getElementById('edit_supplier').value = piece.supplier_id;
-        document.getElementById('edit_current_location').value = currentLocation;
+
+        // Definir localização atual no select
+        const locationSelect = document.getElementById('edit_current_location');
+        if (maxQuantity > 0) {
+            // Encontrar o ID da localização com maior quantidade
+            const locationWithMaxQuantity = Object.values(stockByLocation).find(loc => loc.quantity === maxQuantity);
+            if (locationWithMaxQuantity) {
+                // Buscar o ID da localização no banco
+                const { data: locationData, error: locError } = await supabaseClient
+                    .from('locations')
+                    .select('id')
+                    .eq('code', locationWithMaxQuantity.code)
+                    .single();
+
+                if (!locError && locationData) {
+                    locationSelect.value = locationData.id;
+                }
+            }
+        } else {
+            locationSelect.value = '';
+        }
 
         // Armazenar ID da peça sendo editada
         document.getElementById('edit-piece-form').dataset.pieceId = pieceId;
@@ -568,6 +589,35 @@ async function loadSuppliers() {
     } catch (error) {
         console.error('Erro ao carregar fornecedores:', error);
         showMessage('Erro ao carregar fornecedores. Tente novamente.', 'error');
+    }
+}
+
+async function loadLocations() {
+    try {
+        const { data: locations, error } = await supabaseClient
+            .from('locations')
+            .select('id, code, description')
+            .eq('is_active', true)
+            .order('code');
+
+        if (error) throw error;
+
+        const locationSelects = ['edit_current_location'];
+        locationSelects.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            if (select) {
+                select.innerHTML = '<option value="">Selecione uma localização</option>';
+                locations.forEach(location => {
+                    const option = document.createElement('option');
+                    option.value = location.id;
+                    option.textContent = `${location.code}${location.description ? ` - ${location.description}` : ''}`;
+                    select.appendChild(option);
+                });
+            }
+        });
+    } catch (error) {
+        console.error('Erro ao carregar localizações:', error);
+        showMessage('Erro ao carregar localizações. Tente novamente.', 'error');
     }
 }
 
