@@ -23,6 +23,8 @@ function showTab(tabName) {
 // Carregar informações do usuário logado
 document.addEventListener('DOMContentLoaded', async function() {
     await loadUserInfo();
+    // Carregar movimentações automaticamente ao abrir a página
+    searchMovements();
 });
 
 async function loadUserInfo() {
