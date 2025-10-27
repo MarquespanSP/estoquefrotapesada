@@ -1,5 +1,8 @@
 // Script JavaScript para gerenciamento de locais
 
+// Variável para controlar modo de edição
+let editingLocationId = null;
+
 // Carregar locais quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
     loadLocations();
@@ -34,7 +37,11 @@ function setupFormValidation() {
     if (form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            registerLocation();
+            if (editingLocationId) {
+                updateLocation();
+            } else {
+                registerLocation();
+            }
         });
     }
 }
@@ -91,7 +98,7 @@ async function registerLocation() {
         showMessage('Local cadastrado com sucesso!', 'success');
 
         // Limpar formulário e recarregar lista
-        document.getElementById('location-form').reset();
+        resetForm();
         loadLocations();
 
     } catch (error) {
@@ -178,7 +185,96 @@ async function deleteLocation(locationId, locationCode) {
     }
 }
 
-function editLocation(locationId) {
-    // Implementar edição de local se necessário
-    showMessage('Funcionalidade de edição será implementada em breve.', 'info');
+async function editLocation(locationId) {
+    try {
+        // Buscar dados do local
+        const { data: location, error } = await supabaseClient
+            .from('locations')
+            .select('id, code, description')
+            .eq('id', locationId)
+            .single();
+
+        if (error) throw error;
+
+        // Preencher formulário
+        document.getElementById('location_code').value = location.code;
+        document.getElementById('location_description').value = location.description || '';
+
+        // Definir modo de edição
+        editingLocationId = locationId;
+
+        // Alterar texto do botão
+        const submitBtn = document.querySelector('#location-form button[type="submit"]');
+        submitBtn.textContent = 'Salvar';
+
+        // Focar no campo de código
+        document.getElementById('location_code').focus();
+
+        showMessage('Modo de edição ativado. Faça as alterações e clique em Salvar.', 'info');
+
+    } catch (error) {
+        console.error('Erro ao carregar local para edição:', error);
+        showMessage('Erro ao carregar local para edição.', 'error');
+    }
+}
+
+async function updateLocation() {
+    try {
+        const locationCode = document.getElementById('location_code').value.trim().toUpperCase();
+        const locationDescription = document.getElementById('location_description').value.trim();
+
+        // Validações
+        if (!locationCode) {
+            throw new Error('Código do local é obrigatório');
+        }
+
+        // Verificar se o código já existe em outro local
+        const { data: existingLocations, error: checkError } = await supabaseClient
+            .from('locations')
+            .select('id, code')
+            .eq('code', locationCode)
+            .neq('id', editingLocationId)
+            .limit(1);
+
+        if (checkError) throw checkError;
+
+        if (existingLocations && existingLocations.length > 0) {
+            throw new Error('Este código de local já está sendo usado por outro local');
+        }
+
+        // Atualizar local
+        const { data: updatedLocation, error: updateError } = await supabaseClient
+            .from('locations')
+            .update({
+                code: locationCode,
+                description: locationDescription || null
+            })
+            .eq('id', editingLocationId)
+            .select()
+            .single();
+
+        if (updateError) {
+            throw new Error('Erro ao atualizar local: ' + updateError.message);
+        }
+
+        console.log('Local atualizado com sucesso:', updatedLocation);
+        showMessage('Local atualizado com sucesso!', 'success');
+
+        // Limpar formulário e recarregar lista
+        resetForm();
+        loadLocations();
+
+    } catch (error) {
+        console.error('Erro na atualização do local:', error.message);
+        showMessage('Erro na atualização: ' + error.message, 'error');
+    }
+}
+
+function resetForm() {
+    document.getElementById('location-form').reset();
+    editingLocationId = null;
+
+    // Voltar texto do botão
+    const submitBtn = document.querySelector('#location-form button[type="submit"]');
+    submitBtn.textContent = 'Cadastrar Local';
 }
