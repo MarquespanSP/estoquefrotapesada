@@ -42,21 +42,35 @@
                     <div id="piece_suggestions" class="suggestions" style="display: none;"></div>
                 </div>
                 <div class="form-group">
-                    <label for="selected_piece">Peça Selecionada:</label>
-                    <input type="text" id="selected_piece" name="selected_piece" readonly placeholder="Selecione uma peça acima">
-                </div>
-                <div class="form-group">
                     <label for="quantity">Quantidade:</label>
                     <input type="number" id="quantity" name="quantity" required min="1" placeholder="Digite a quantidade" autocomplete="off">
                 </div>
-                <div class="form-group">
-                    <label for="location">Local no Estoque:</label>
-                    <select id="location" name="location" required>
-                        <option value="">Selecione um local</option>
-                    </select>
-                </div>
-                <button type="submit">Registrar Movimentação</button>
+                <button type="button" id="add_piece_btn">Adicionar Peça</button>
             </form>
+
+            <div class="selected-pieces-section">
+                <h3>Peças Selecionadas</h3>
+                <div id="selected-pieces-container">
+                    <table id="selected-pieces-table" class="data-table" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Peça</th>
+                                <th>Quantidade</th>
+                                <th>Local</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="selected-pieces-body">
+                        </tbody>
+                    </table>
+                    <p id="no-pieces-message">Nenhuma peça selecionada ainda.</p>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" id="save_all_movements_btn" style="display: none;">Salvar Todas Movimentações</button>
+            </div>
+
             <div id="message" class="message" style="display: none;"></div>
         </div>
     </main>

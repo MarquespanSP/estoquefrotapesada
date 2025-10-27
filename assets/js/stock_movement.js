@@ -1,12 +1,15 @@
 // Script JavaScript para movimentação de estoque
 
 let selectedPiece = null;
+let selectedPieces = []; // Array para armazenar múltiplas peças selecionadas
 
 // Carregar dados quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
     loadLocations();
     setupPieceSearch();
     setupFormValidation();
+    setupAddPieceButton();
+    setupSaveAllButton();
 });
 
 async function loadLocations() {
@@ -95,7 +98,6 @@ async function searchPieces(query) {
 function selectPiece(piece) {
     selectedPiece = piece;
     document.getElementById('piece_search').value = `${piece.code} - ${piece.name}`;
-    document.getElementById('selected_piece').value = `${piece.code} - ${piece.name}`;
     document.getElementById('piece_suggestions').style.display = 'none';
 }
 
@@ -109,24 +111,139 @@ function setupFormValidation() {
     }
 }
 
-async function registerMovement() {
+// Funções para gerenciar múltiplas peças
+function setupAddPieceButton() {
+    const addBtn = document.getElementById('add_piece_btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', addPieceToList);
+    }
+}
+
+function setupSaveAllButton() {
+    const saveBtn = document.getElementById('save_all_movements_btn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveAllMovements);
+    }
+}
+
+async function addPieceToList() {
     try {
-        const movementType = document.getElementById('movement_type').value;
         const quantity = parseInt(document.getElementById('quantity').value);
-        const locationId = document.getElementById('location').value;
 
         // Validações
         if (!selectedPiece) {
-            throw new Error('Selecione uma peça');
+            throw new Error('Selecione uma peça primeiro');
         }
 
         if (!quantity || quantity <= 0) {
             throw new Error('Quantidade deve ser maior que zero');
         }
 
-        if (!locationId) {
-            throw new Error('Selecione um local');
+        // Verificar se a peça já foi adicionada
+        const existingPiece = selectedPieces.find(p => p.piece.id === selectedPiece.id);
+        if (existingPiece) {
+            throw new Error('Esta peça já foi adicionada à lista');
         }
+
+        // Buscar local padrão da peça (último local usado)
+        let defaultLocation = null;
+        try {
+            const { data: lastMovement, error } = await supabaseClient
+                .from('stock_movements')
+                .select('location_id, locations(code, description)')
+                .eq('piece_id', selectedPiece.id)
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (!error && lastMovement && lastMovement.length > 0) {
+                defaultLocation = lastMovement[0].locations;
+            }
+        } catch (error) {
+            console.log('Não foi possível buscar local padrão:', error);
+        }
+
+        // Adicionar à lista
+        selectedPieces.push({
+            piece: selectedPiece,
+            quantity: quantity,
+            location: defaultLocation
+        });
+
+        // Atualizar interface
+        updateSelectedPiecesTable();
+
+        // Limpar campos
+        document.getElementById('piece_search').value = '';
+        document.getElementById('quantity').value = '';
+        selectedPiece = null;
+
+        showMessage('Peça adicionada à lista!', 'success');
+
+    } catch (error) {
+        console.error('Erro ao adicionar peça:', error);
+        showMessage(error.message, 'error');
+    }
+}
+
+function updateSelectedPiecesTable() {
+    const table = document.getElementById('selected-pieces-table');
+    const tbody = document.getElementById('selected-pieces-body');
+    const noPiecesMsg = document.getElementById('no-pieces-message');
+    const saveBtn = document.getElementById('save_all_movements_btn');
+
+    if (selectedPieces.length > 0) {
+        table.style.display = 'table';
+        noPiecesMsg.style.display = 'none';
+        saveBtn.style.display = 'block';
+
+        tbody.innerHTML = '';
+
+        selectedPieces.forEach((item, index) => {
+            const row = document.createElement('tr');
+
+            const pieceCell = document.createElement('td');
+            pieceCell.textContent = `${item.piece.code} - ${item.piece.name}`;
+            row.appendChild(pieceCell);
+
+            const quantityCell = document.createElement('td');
+            quantityCell.textContent = item.quantity;
+            row.appendChild(quantityCell);
+
+            const locationCell = document.createElement('td');
+            locationCell.textContent = item.location ? `${item.location.code}${item.location.description ? ' - ' + item.location.description : ''}` : 'Local não definido';
+            row.appendChild(locationCell);
+
+            const actionsCell = document.createElement('td');
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'btn-small btn-danger';
+            removeBtn.textContent = 'Remover';
+            removeBtn.onclick = () => removePieceFromList(index);
+            actionsCell.appendChild(removeBtn);
+            row.appendChild(actionsCell);
+
+            tbody.appendChild(row);
+        });
+    } else {
+        table.style.display = 'none';
+        noPiecesMsg.style.display = 'block';
+        saveBtn.style.display = 'none';
+    }
+}
+
+function removePieceFromList(index) {
+    selectedPieces.splice(index, 1);
+    updateSelectedPiecesTable();
+    showMessage('Peça removida da lista!', 'info');
+}
+
+async function saveAllMovements() {
+    if (selectedPieces.length === 0) {
+        showMessage('Nenhuma peça para salvar!', 'error');
+        return;
+    }
+
+    try {
+        const movementType = document.getElementById('movement_type').value;
 
         // Obter usuário logado
         const userSession = await getLoggedUser();
@@ -134,57 +251,62 @@ async function registerMovement() {
             throw new Error('Usuário não autenticado');
         }
 
-        // Verificar estoque atual se for saída
-        if (movementType === 'saida') {
-            const { data: currentStock, error: stockError } = await supabaseClient
-                .from('stock_movements')
-                .select('quantity')
-                .eq('piece_id', selectedPiece.id)
-                .eq('location_id', locationId);
-
-            if (stockError) throw stockError;
-
-            const totalStock = currentStock.reduce((sum, movement) => {
-                return movement.quantity > 0 ? sum + movement.quantity : sum;
-            }, 0);
-
-            if (totalStock < quantity) {
-                throw new Error(`Estoque insuficiente. Disponível: ${totalStock}`);
+        // Preparar movimentações
+        const movements = [];
+        for (const item of selectedPieces) {
+            // Se não tem local definido, tentar usar um local padrão ou pedir seleção
+            if (!item.location) {
+                throw new Error(`Local não definido para a peça ${item.piece.code}. Configure um local para esta peça primeiro.`);
             }
+
+            // Verificar estoque se for saída
+            if (movementType === 'saida') {
+                const { data: currentStock, error: stockError } = await supabaseClient
+                    .from('stock_movements')
+                    .select('quantity')
+                    .eq('piece_id', item.piece.id)
+                    .eq('location_id', item.location.id);
+
+                if (stockError) throw stockError;
+
+                const totalStock = currentStock.reduce((sum, movement) => {
+                    return movement.quantity > 0 ? sum + movement.quantity : sum;
+                }, 0);
+
+                if (totalStock < item.quantity) {
+                    throw new Error(`Estoque insuficiente para ${item.piece.code}. Disponível: ${totalStock}, Solicitado: ${item.quantity}`);
+                }
+            }
+
+            movements.push({
+                piece_id: item.piece.id,
+                location_id: item.location.id,
+                quantity: movementType === 'entrada' ? item.quantity : -item.quantity,
+                movement_type: movementType,
+                created_by: userSession.username,
+                created_at: new Date().toISOString()
+            });
         }
 
-        // Registrar movimentação
-        const movementQuantity = movementType === 'entrada' ? quantity : -quantity;
-
-        const { data: movement, error: insertError } = await supabaseClient
+        // Inserir todas as movimentações
+        const { data: insertedMovements, error: insertError } = await supabaseClient
             .from('stock_movements')
-            .insert([
-                {
-                    piece_id: selectedPiece.id,
-                    location_id: locationId,
-                    quantity: movementQuantity,
-                    movement_type: movementType,
-                    created_by: userSession.username,
-                    created_at: new Date().toISOString()
-                }
-            ])
-            .select()
-            .single();
+            .insert(movements)
+            .select();
 
         if (insertError) {
-            throw new Error('Erro ao registrar movimentação: ' + insertError.message);
+            throw new Error('Erro ao registrar movimentações: ' + insertError.message);
         }
 
-        console.log('Movimentação registrada com sucesso:', movement);
-        showMessage(`Movimentação de ${movementType} registrada com sucesso!`, 'success');
+        console.log('Movimentações registradas com sucesso:', insertedMovements);
+        showMessage(`${movements.length} movimentações de ${movementType} registradas com sucesso!`, 'success');
 
-        // Limpar formulário
-        document.getElementById('movement-form').reset();
-        selectedPiece = null;
-        document.getElementById('selected_piece').value = '';
+        // Limpar lista
+        selectedPieces = [];
+        updateSelectedPiecesTable();
 
     } catch (error) {
-        console.error('Erro na movimentação:', error.message);
-        showMessage('Erro na movimentação: ' + error.message, 'error');
+        console.error('Erro ao salvar movimentações:', error);
+        showMessage(error.message, 'error');
     }
 }
