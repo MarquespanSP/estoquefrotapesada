@@ -556,7 +556,7 @@ async function generateMovementPDF(movementId) {
         currentX = margin + 5;
         const piece = movement.pieces || {};
         const pieceData = [
-            movement.code || 'N/A', // Código da RM (stock_movements.code)
+            movement.code ? movement.code.toString() : 'N/A', // Código da RM (stock_movements.code)
             piece.name || 'N/A',
             Math.abs(movement.quantity).toString()
         ];
