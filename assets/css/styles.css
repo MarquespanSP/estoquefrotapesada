@@ -1305,6 +1305,21 @@ button:disabled {
     font-size: 12px;
 }
 
+/* Estilos para botões de PDF */
+.btn-pdf {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.btn-pdf:hover {
+    background-color: #c82333;
+}
+
 /* Container para entrada de QR Code */
 .qr-input-container {
     display: flex;

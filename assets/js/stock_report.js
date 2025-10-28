@@ -209,11 +209,20 @@ function renderTable() {
 
         // Verificar se usuário é administrador
         const isAdmin = currentUser && currentUser.role === 'admin';
-        const actionsCell = isAdmin ?
-            `<button class="btn-small btn-danger delete-movement" data-id="${movement.id}" title="Excluir Movimentação">
+        // Ícone de PDF apenas para saídas
+        const pdfIcon = movement.movement_type === 'saida' ?
+            `<button class="btn-small btn-pdf" data-id="${movement.id}" title="Gerar PDF">
+                <i class="fa fa-file-pdf-o"></i>
+             </button>` : '';
+
+        let actionsCell = '';
+        if (isAdmin) {
+            actionsCell = `${pdfIcon}<button class="btn-small btn-danger delete-movement" data-id="${movement.id}" title="Excluir Movimentação">
                 <i class="fa fa-trash"></i> Excluir
-             </button>` :
-            '-';
+             </button>`;
+        } else {
+            actionsCell = pdfIcon || '-';
+        }
 
         return `
             <tr class="movement-row" data-id="${movement.id}">
@@ -239,6 +248,14 @@ function renderTable() {
         btn.addEventListener('click', (e) => {
             e.stopPropagation(); // Evitar abrir modal de detalhes
             confirmDeleteMovement(btn.dataset.id);
+        });
+    });
+
+    // Adicionar event listeners para botões de PDF
+    document.querySelectorAll('.btn-pdf').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evitar abrir modal de detalhes
+            generateMovementPDF(btn.dataset.id);
         });
     });
 
@@ -417,4 +434,173 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
+}
+
+// Função para gerar PDF da movimentação
+async function generateMovementPDF(movementId) {
+    try {
+        const movement = allMovements.find(m => m.id === movementId);
+        if (!movement) {
+            throw new Error('Movimentação não encontrada');
+        }
+
+        // Verificar se é saída - apenas saídas geram PDF
+        if (movement.movement_type !== 'saida') {
+            showMessage('PDF só pode ser gerado para movimentações de saída.', 'error');
+            return;
+        }
+
+        // Obter usuário logado
+        const userSession = await getLoggedUser();
+        if (!userSession) {
+            throw new Error('Usuário não autenticado');
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Configurações da página
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20;
+        let currentY = margin;
+
+        // Logo da empresa (usando texto estilizado já que não temos imagem)
+        doc.setFillColor(46, 139, 87); // Verde escuro
+        doc.rect(margin, currentY - 5, pageWidth - 2 * margin, 20, 'F');
+        doc.setTextColor(255, 255, 255); // Branco
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('ESTOQUE FROTA PESADA', pageWidth / 2, currentY + 8, { align: 'center' });
+        currentY += 25;
+
+        // Linha separadora
+        doc.setDrawColor(46, 139, 87); // Verde
+        doc.setLineWidth(1);
+        doc.line(margin, currentY, pageWidth - margin, currentY);
+        currentY += 15;
+
+        // Título da requisição
+        doc.setTextColor(46, 139, 87); // Verde
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('REQUISIÇÃO DE MATERIAL', pageWidth / 2, currentY, { align: 'center' });
+        currentY += 15;
+
+        // Código da movimentação
+        doc.setTextColor(220, 53, 69); // Vermelho
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Código: ${movement.id}`, pageWidth / 2, currentY, { align: 'center' });
+        currentY += 15;
+
+        // Resetar cor para preto
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'normal');
+
+        // Data e hora
+        doc.setFontSize(12);
+        const now = new Date();
+        const dateTimeStr = now.toLocaleString('pt-BR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        doc.text(`Data/Hora: ${dateTimeStr}`, margin, currentY);
+        currentY += 10;
+
+        // Usuário que fez a movimentação
+        doc.text(`Atendente: ${userSession.username}`, margin, currentY);
+        currentY += 20;
+
+        // Tabela de peças com bordas
+        const tableStartY = currentY;
+
+        // Cabeçalhos da tabela
+        doc.setFillColor(46, 139, 87); // Verde
+        doc.rect(margin, currentY, pageWidth - 2 * margin, 12, 'F');
+        doc.setTextColor(255, 255, 255); // Branco
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+
+        const colWidths = [60, 80, 30]; // Larguras das colunas
+        const headers = ['Código', 'Nome da Peça', 'Qtd'];
+
+        let currentX = margin + 5;
+        headers.forEach((header, index) => {
+            doc.text(header, currentX, currentY + 8);
+            currentX += colWidths[index];
+        });
+
+        currentY += 12;
+
+        // Linha separadora da tabela
+        doc.setDrawColor(46, 139, 87); // Verde
+        doc.setLineWidth(0.5);
+        doc.line(margin, currentY, pageWidth - margin, currentY);
+        currentY += 5;
+
+        // Dados da peça
+        doc.setTextColor(0, 0, 0); // Preto
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+
+        // Fundo alternado para a linha de dados
+        doc.setFillColor(248, 249, 250); // Cinza claro
+        doc.rect(margin, currentY, pageWidth - 2 * margin, 12, 'F');
+
+        currentX = margin + 5;
+        const piece = movement.pieces || {};
+        const pieceData = [
+            piece.code || 'N/A',
+            piece.name || 'N/A',
+            Math.abs(movement.quantity).toString()
+        ];
+
+        pieceData.forEach((data, index) => {
+            doc.text(data, currentX, currentY + 8);
+            currentX += colWidths[index];
+        });
+
+        currentY += 12;
+
+        // Bordas da tabela
+        doc.setDrawColor(46, 139, 87); // Verde
+        doc.setLineWidth(0.5);
+        doc.rect(margin, tableStartY, pageWidth - 2 * margin, currentY - tableStartY);
+
+        currentY += 20;
+
+        // Espaço para assinaturas
+        currentY += 10;
+
+        // Linha para assinatura do atendente
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(12);
+        doc.setDrawColor(0, 0, 0); // Preto
+        doc.setLineWidth(0.3);
+        doc.line(margin, currentY, margin + 80, currentY);
+        currentY += 8;
+        doc.text('Assinatura do Atendente', margin, currentY);
+        currentY += 20;
+
+        // Linha para assinatura do solicitante
+        doc.line(margin, currentY, margin + 80, currentY);
+        currentY += 8;
+        doc.text('Assinatura do Solicitante', margin, currentY);
+
+        // Salvar o PDF
+        const fileName = `requisicao_${movement.id}.pdf`;
+        doc.save(fileName);
+
+        console.log('PDF gerado com sucesso:', fileName);
+        showMessage('PDF gerado com sucesso!', 'success');
+
+    } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        showMessage('Erro ao gerar PDF da requisição.', 'error');
+    }
 }
