@@ -466,18 +466,23 @@ async function generateMovementPDF(movementId) {
         const margin = 20;
         let currentY = margin;
 
-        // Logo da empresa no canto superior direito
-        try {
-            // Tentar adicionar a imagem do logo
-            const logoImg = new Image();
-            logoImg.src = 'logo.png';
-            logoImg.onload = function() {
-                const logoWidth = 40;
-                const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
-                doc.addImage(logoImg, 'PNG', pageWidth - margin - logoWidth, currentY - 5, logoWidth, logoHeight);
+        // Carregar logo da empresa
+        let logoLoaded = false;
+        const logoImg = new Image();
+        logoImg.src = 'logo.png';
+        await new Promise((resolve) => {
+            logoImg.onload = () => {
+                logoLoaded = true;
+                resolve();
             };
-        } catch (error) {
-            console.warn('Erro ao carregar logo:', error);
+            logoImg.onerror = () => resolve(); // Continuar mesmo se erro
+        });
+
+        // Adicionar logo no canto superior direito se carregado
+        if (logoLoaded) {
+            const logoWidth = 40;
+            const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
+            doc.addImage(logoImg, 'PNG', pageWidth - margin - logoWidth, currentY - 5, logoWidth, logoHeight);
         }
 
         // Cabeçalho da empresa
@@ -589,23 +594,25 @@ async function generateMovementPDF(movementId) {
 
         currentY += 20;
 
-        // Espaço para assinaturas
+        // Espaço para assinaturas lado a lado
         currentY += 10;
 
-        // Linha para assinatura do atendente
+        // Posições para assinaturas lado a lado
+        const leftX = margin;
+        const rightX = pageWidth / 2 + margin;
+
+        // Assinatura do atendente (esquerda)
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(12);
         doc.setDrawColor(0, 0, 0); // Preto
         doc.setLineWidth(0.3);
-        doc.line(margin, currentY, margin + 80, currentY);
+        doc.line(leftX, currentY, leftX + 80, currentY);
         currentY += 8;
-        doc.text('Assinatura do Atendente', margin, currentY);
-        currentY += 20;
+        doc.text('Assinatura do Atendente', leftX, currentY);
 
-        // Linha para assinatura do solicitante
-        doc.line(margin, currentY, margin + 80, currentY);
-        currentY += 8;
-        doc.text('Assinatura do Solicitante', margin, currentY);
+        // Assinatura do solicitante (direita)
+        doc.line(rightX, currentY - 8, rightX + 80, currentY - 8);
+        doc.text('Assinatura do Solicitante', rightX, currentY);
 
         // Salvar o PDF
         const fileName = `requisicao_${movement.id}.pdf`;
