@@ -613,8 +613,8 @@ async function scanQRCode() {
         codeReader.decodeFromVideoDevice(selectedDeviceId, video, (result, err) => {
             if (result) {
                 // Código detectado com sucesso
-                const pieceCodeInput = document.getElementById('piece_code');
-                pieceCodeInput.value = result.text;
+                const qrCodeInput = document.getElementById('qr_code');
+                qrCodeInput.value = result.text;
 
                 // Fechar modal
                 cancelScan();
