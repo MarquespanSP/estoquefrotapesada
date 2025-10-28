@@ -1287,3 +1287,20 @@ button:disabled {
     border-radius: 8px;
     margin: 20px 0;
 }
+
+/* Estilos para container de QR Code */
+.qr-code-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.qr-code-container input {
+    flex: 1;
+}
+
+.qr-code-container button {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    font-size: 12px;
+}

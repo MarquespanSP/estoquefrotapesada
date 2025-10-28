@@ -40,6 +40,14 @@ function setupFormValidation() {
         this.value = this.value.toUpperCase();
     });
 
+    // Configurar botão de escaneamento QR Code
+    const scanQrBtn = document.getElementById('scan-qr-btn');
+    if (scanQrBtn) {
+        scanQrBtn.addEventListener('click', function() {
+            scanQRCode();
+        });
+    }
+
     const form = document.getElementById('piece-form');
     if (form) {
         form.addEventListener('submit', function(e) {
@@ -144,11 +152,12 @@ async function registerPiece() {
     try {
         const pieceCode = document.getElementById('piece_code').value.trim().toUpperCase();
         const pieceName = document.getElementById('piece_name').value.trim();
+        const qrCode = document.getElementById('qr_code').value.trim();
         const supplierId = document.getElementById('supplier').value;
 
         // Validações
         if (!pieceCode || !pieceName || !supplierId) {
-            throw new Error('Todos os campos são obrigatórios');
+            throw new Error('Código da peça, nome e fornecedor são obrigatórios');
         }
 
         // Verificar se o código da peça já existe
@@ -160,6 +169,19 @@ async function registerPiece() {
 
         if (existingPiece) {
             throw new Error('Este código de peça já está cadastrado');
+        }
+
+        // Verificar se o QR Code já existe (se fornecido)
+        if (qrCode) {
+            const { data: existingQrCode, error: qrCheckError } = await supabaseClient
+                .from('pieces')
+                .select('qr_code')
+                .eq('qr_code', qrCode)
+                .single();
+
+            if (existingQrCode) {
+                throw new Error('Este QR Code já está cadastrado para outra peça');
+            }
         }
 
         // Obter usuário logado
@@ -175,6 +197,7 @@ async function registerPiece() {
                 {
                     code: pieceCode,
                     name: pieceName,
+                    qr_code: qrCode || null,
                     supplier_id: supplierId,
                     created_by: userSession.username,
                     created_at: new Date().toISOString(),
@@ -468,5 +491,116 @@ async function processImportData(rows) {
     } catch (error) {
         console.error('Erro no processamento da importação:', error);
         showMessage('Erro na importação: ' + error.message, 'error');
+    }
+}
+
+// Função para escanear QR Code e códigos de barras
+async function scanQRCode() {
+    try {
+        // Verificar se o navegador suporta acesso à câmera
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('Este navegador não suporta acesso à câmera');
+        }
+
+        // Solicitar permissão para acessar a câmera
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' } // Usar câmera traseira se disponível
+        });
+
+        // Criar elemento de vídeo para mostrar a câmera
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.setAttribute('playsinline', true); // Para iOS
+        video.play();
+
+        // Criar modal para mostrar a câmera
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        `;
+
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 90%;
+            max-height: 90%;
+        `;
+
+        const title = document.createElement('h3');
+        title.textContent = 'Posicione o código na câmera';
+        title.style.marginBottom = '10px';
+
+        const videoContainer = document.createElement('div');
+        videoContainer.style.cssText = `
+            position: relative;
+            display: inline-block;
+        `;
+
+        video.style.cssText = `
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+        `;
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'Cancelar';
+        cancelBtn.className = 'btn btn-secondary';
+        cancelBtn.style.marginTop = '10px';
+        cancelBtn.onclick = function() {
+            // Parar stream da câmera
+            stream.getTracks().forEach(track => track.stop());
+            document.body.removeChild(modal);
+        };
+
+        videoContainer.appendChild(video);
+        modalContent.appendChild(title);
+        modalContent.appendChild(videoContainer);
+        modalContent.appendChild(cancelBtn);
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+
+        // Inicializar ZXing
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+
+        // Tentar detectar códigos
+        codeReader.decodeFromVideoDevice(null, video, (result, err) => {
+            if (result) {
+                // Código detectado com sucesso
+                const qrCodeInput = document.getElementById('qr_code');
+                qrCodeInput.value = result.text;
+
+                // Parar stream da câmera
+                stream.getTracks().forEach(track => track.stop());
+                document.body.removeChild(modal);
+
+                // Mostrar mensagem de sucesso
+                showMessage('Código escaneado com sucesso!', 'success');
+
+                // Parar o reader
+                codeReader.reset();
+            }
+
+            if (err && !(err instanceof ZXing.NotFoundException)) {
+                console.error('Erro ao escanear:', err);
+            }
+        });
+
+    } catch (error) {
+        console.error('Erro ao acessar câmera:', error);
+        showMessage('Erro ao acessar câmera: ' + error.message, 'error');
     }
 }
