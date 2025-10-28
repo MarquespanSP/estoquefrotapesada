@@ -228,7 +228,7 @@ function renderTable() {
         return `
             <tr class="movement-row" data-id="${movement.id}">
                 <td>${date}</td>
-                <td>${piece.code || 'N/A'} - ${piece.name || 'N/A'}</td>
+                <td>${piece.id || 'N/A'} - ${piece.name || 'N/A'}</td>
                 <td>${supplier.name || 'N/A'}</td>
                 <td>${location.code || 'N/A'}</td>
                 <td><span class="movement-type ${typeClass}">${movement.movement_type === 'entrada' ? 'Entrada' : 'Saída'}</span></td>
@@ -556,7 +556,7 @@ async function generateMovementPDF(movementId) {
         currentX = margin + 5;
         const piece = movement.pieces || {};
         const pieceData = [
-            movement.code ? movement.code.toString() : 'N/A', // Código da RM (stock_movements.code)
+            piece.code || 'N/A', // Código da peça (pieces.code)
             piece.name || 'N/A',
             Math.abs(movement.quantity).toString()
         ];
