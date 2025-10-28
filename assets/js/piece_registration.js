@@ -545,7 +545,6 @@ async function scanQRCode() {
             height: auto;
             border: 2px solid #ccc;
             border-radius: 5px;
-            transform: scaleX(-1);
         `;
         video.setAttribute('playsinline', true); // Para iOS
 
@@ -614,8 +613,8 @@ async function scanQRCode() {
         codeReader.decodeFromVideoDevice(selectedDeviceId, video, (result, err) => {
             if (result) {
                 // Código detectado com sucesso
-                const qrCodeInput = document.getElementById('qr_code');
-                qrCodeInput.value = result.text;
+                const pieceCodeInput = document.getElementById('piece_code');
+                pieceCodeInput.value = result.text;
 
                 // Fechar modal
                 cancelScan();
