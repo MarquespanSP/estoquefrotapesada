@@ -27,14 +27,18 @@ async function loadLocations() {
 
         if (error) throw error;
 
-        const locationSelect = document.getElementById('location');
-        locationSelect.innerHTML = '<option value="">Selecione um local</option>';
-
-        locations.forEach(location => {
-            const option = document.createElement('option');
-            option.value = location.id;
-            option.textContent = `${location.code}${location.description ? ' - ' + location.description : ''}`;
-            locationSelect.appendChild(option);
+        const locationSelects = ['location', 'modal_location'];
+        locationSelects.forEach(id => {
+            const select = document.getElementById(id);
+            if (select) {
+                select.innerHTML = '<option value="">Selecione um local</option>';
+                locations.forEach(location => {
+                    const option = document.createElement('option');
+                    option.value = location.id;
+                    option.textContent = `${location.code}${location.description ? ' - ' + location.description : ''}`;
+                    select.appendChild(option);
+                });
+            }
         });
     } catch (error) {
         console.error('Erro ao carregar locais:', error);
@@ -623,7 +627,7 @@ function openLocationModal(index) {
     `;
 
     // Preencher select com local atual
-    const locationSelect = document.getElementById('location');
+    const locationSelect = document.getElementById('modal_location');
     if (item.location) {
         locationSelect.value = item.location.id;
     } else {
@@ -638,7 +642,7 @@ async function saveLocation() {
     if (currentEditingIndex === null) return;
 
     try {
-        const locationId = document.getElementById('location').value;
+        const locationId = document.getElementById('modal_location').value;
 
         if (!locationId) {
             throw new Error('Selecione um local');
