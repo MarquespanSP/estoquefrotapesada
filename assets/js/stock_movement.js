@@ -676,20 +676,20 @@ async function generateMovementPDF(movements, movementCode, movementType, userSe
         // Como não temos acesso direto ao logo, vamos usar texto estilizado
         doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
-        doc.text('ESTOQUE FROTA PESADA', pageWidth / 2, currentY, { align: 'center' });
-        currentY += 15;
+        doc.text('ESTOQUE - FROTA PESADA', pageWidth / 2, currentY, { align: 'center' });
+        currentY += 8;
 
         // Linha separadora
         doc.setLineWidth(0.5);
         doc.line(margin, currentY, pageWidth - margin, currentY);
-        currentY += 10;
+        currentY += 8;
 
         // Título da requisição
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
         const title = movementType === 'saida' ? 'REQUISIÇÃO DE MATERIAL' : 'ENTRADA DE MATERIAL';
         doc.text(title, pageWidth / 2, currentY, { align: 'center' });
-        currentY += 15;
+        currentY += 8;
 
         // Código da movimentação em destaque vermelho
         doc.setFontSize(14);
