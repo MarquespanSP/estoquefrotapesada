@@ -221,6 +221,7 @@ function setupSaveAllButton() {
 async function addPieceToList() {
     try {
         const quantity = parseInt(document.getElementById('quantity').value);
+        const movementType = document.getElementById('movement_type').value;
 
         // Validações
         if (!selectedPiece) {
@@ -235,6 +236,23 @@ async function addPieceToList() {
         const existingPiece = selectedPieces.find(p => p.piece.id === selectedPiece.id);
         if (existingPiece) {
             throw new Error('Esta peça já foi adicionada à lista');
+        }
+
+        // Verificar estoque se for saída
+        if (movementType === 'saida') {
+            const { data: currentStock, error: stockError } = await supabaseClient
+                .from('stock_movements')
+                .select('quantity')
+                .eq('piece_id', selectedPiece.id);
+
+            if (stockError) throw stockError;
+
+            const totalStock = currentStock.reduce((sum, movement) => sum + movement.quantity, 0);
+
+            if (totalStock < quantity) {
+                window.alert(`Estoque insuficiente para ${selectedPiece.code}. Disponível: ${totalStock}, Solicitado: ${quantity}`);
+                return;
+            }
         }
 
         // Buscar local padrão da peça (último local usado)
