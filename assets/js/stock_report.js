@@ -466,7 +466,21 @@ async function generateMovementPDF(movementId) {
         const margin = 20;
         let currentY = margin;
 
-        // Logo da empresa (usando texto estilizado já que não temos imagem)
+        // Logo da empresa no canto superior direito
+        try {
+            // Tentar adicionar a imagem do logo
+            const logoImg = new Image();
+            logoImg.src = 'logo.png';
+            logoImg.onload = function() {
+                const logoWidth = 40;
+                const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
+                doc.addImage(logoImg, 'PNG', pageWidth - margin - logoWidth, currentY - 5, logoWidth, logoHeight);
+            };
+        } catch (error) {
+            console.warn('Erro ao carregar logo:', error);
+        }
+
+        // Cabeçalho da empresa
         doc.setFillColor(46, 139, 87); // Verde escuro
         doc.rect(margin, currentY - 5, pageWidth - 2 * margin, 20, 'F');
         doc.setTextColor(255, 255, 255); // Branco
