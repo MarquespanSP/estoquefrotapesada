@@ -538,14 +538,14 @@ async function generateMovementPDF(movementId) {
 
         // Usuário que fez a movimentação
         doc.text(`Atendente: ${userSession.username}`, margin, currentY);
-        currentY += 20;
+        currentY += 10;
 
         // Tabela de peças com bordas
         const tableStartY = currentY;
 
         // Cabeçalhos da tabela
         doc.setFillColor(46, 139, 87); // Verde
-        doc.rect(margin, currentY, pageWidth - 2 * margin, 12, 'F');
+        doc.rect(margin, currentY, pageWidth - 2 * margin, 10, 'F');
         doc.setTextColor(255, 255, 255); // Branco
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(11);
