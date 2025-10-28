@@ -104,6 +104,93 @@ function selectPiece(piece) {
     selectedPiece = piece;
     document.getElementById('piece_search').value = `${piece.code} - ${piece.name}`;
     document.getElementById('piece_suggestions').style.display = 'none';
+
+    // Mostrar informações de estoque da peça selecionada
+    showStockInfo(piece);
+}
+
+// Função para mostrar informações de estoque da peça selecionada
+async function showStockInfo(piece) {
+    try {
+        // Buscar movimentações de estoque para esta peça
+        const { data: movements, error } = await supabaseClient
+            .from('stock_movements')
+            .select(`
+                quantity,
+                locations (
+                    code,
+                    description
+                )
+            `)
+            .eq('piece_id', piece.id);
+
+        if (error) throw error;
+
+        // Calcular estoque total por local
+        const stockByLocation = {};
+        movements.forEach(movement => {
+            const locationKey = movement.locations.code;
+            if (!stockByLocation[locationKey]) {
+                stockByLocation[locationKey] = {
+                    code: movement.locations.code,
+                    description: movement.locations.description,
+                    quantity: 0
+                };
+            }
+            stockByLocation[locationKey].quantity += movement.quantity;
+        });
+
+        // Calcular estoque total geral
+        const totalStock = Object.values(stockByLocation).reduce((sum, loc) => sum + loc.quantity, 0);
+
+        // Determinar classe de status do estoque
+        let stockClass = 'good-stock';
+        let stockMessage = `Estoque total: ${totalStock} unidades`;
+
+        if (totalStock === 0) {
+            stockClass = 'out-of-stock';
+            stockMessage = 'Sem estoque disponível';
+        } else if (totalStock <= 5) { // Considerando 5 como limite baixo
+            stockClass = 'low-stock';
+            stockMessage = `Estoque baixo: ${totalStock} unidades`;
+        }
+
+        // Criar elemento de informação de estoque
+        const stockInfoDiv = document.createElement('div');
+        stockInfoDiv.className = `stock-info ${stockClass}`;
+        stockInfoDiv.innerHTML = `
+            <strong>${stockMessage}</strong>
+            ${Object.keys(stockByLocation).length > 0 ? '<br>Por local:' : ''}
+            ${Object.values(stockByLocation).map(loc =>
+                loc.quantity > 0 ? `<br>• ${loc.code}${loc.description ? ' - ' + loc.description : ''}: ${loc.quantity}` : ''
+            ).join('')}
+        `;
+
+        // Remover informações anteriores
+        const existingInfo = document.querySelector('.stock-info');
+        if (existingInfo) {
+            existingInfo.remove();
+        }
+
+        // Adicionar após o campo de busca
+        const searchContainer = document.getElementById('piece_search').parentNode;
+        searchContainer.appendChild(stockInfoDiv);
+
+    } catch (error) {
+        console.error('Erro ao buscar informações de estoque:', error);
+        // Em caso de erro, mostrar mensagem genérica
+        const stockInfoDiv = document.createElement('div');
+        stockInfoDiv.className = 'stock-info out-of-stock';
+        stockInfoDiv.innerHTML = '<strong>Erro ao carregar informações de estoque</strong>';
+
+        const existingInfo = document.querySelector('.stock-info');
+        if (existingInfo) {
+            existingInfo.remove();
+        }
+
+        const searchContainer = document.getElementById('piece_search').parentNode;
+        searchContainer.appendChild(stockInfoDiv);
+    }
 }
 
 function setupFormValidation() {
