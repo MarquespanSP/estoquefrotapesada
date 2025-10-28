@@ -840,8 +840,15 @@ function startQrScan() {
                 <button class="close" id="close-scanner">&times;</button>
             </div>
             <div class="modal-body">
+                <div id="camera-selector-container" style="margin-bottom: 10px; display: none;">
+                    <label for="camera-selector" style="display: block; margin-bottom: 5px; font-weight: 500;">Selecionar Câmera:</label>
+                    <select id="camera-selector" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></select>
+                </div>
                 <video id="qr-video" style="width: 100%; max-width: 400px; height: auto;"></video>
                 <p style="text-align: center; margin-top: 10px;">Posicione o QR code ou código de barras na frente da câmera</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <button id="manual-scan-btn" class="btn" style="display: none;">Escanear Manualmente</button>
+                </div>
             </div>
         </div>
     `;
@@ -849,24 +856,92 @@ function startQrScan() {
     document.body.appendChild(scannerModal);
 
     let scanner = null;
+    let cameras = [];
+    let currentCamera = null;
 
     // Inicializar scanner
     scanner = new Instascan.Scanner({ video: document.getElementById('qr-video') });
 
     scanner.addListener('scan', function (content) {
-        // Quando um código é escaneado, preencher o campo e fechar modal
-        document.getElementById('search_qr').value = content;
-        closeScanner();
-        // Opcional: executar busca automaticamente
-        performSearchByQR(content);
+        // Quando um código é escaneado, mostrar confirmação
+        showScanConfirmation(content);
     });
 
+    // Função para mostrar confirmação do código escaneado
+    function showScanConfirmation(content) {
+        const confirmModal = document.createElement('div');
+        confirmModal.className = 'modal';
+        confirmModal.style.display = 'block';
+        confirmModal.innerHTML = `
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h3>Código Detectado</h3>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Código escaneado:</strong></p>
+                    <p style="word-break: break-all; background: #f8f9fa; padding: 10px; border-radius: 4px; margin: 10px 0;">${content}</p>
+                    <p>Deseja usar este código para a busca?</p>
+                </div>
+                <div class="modal-actions" style="display: flex; gap: 10px; justify-content: center; padding: 20px;">
+                    <button id="confirm-scan" class="btn">Sim, usar código</button>
+                    <button id="cancel-scan" class="btn btn-danger">Cancelar</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(confirmModal);
+
+        document.getElementById('confirm-scan').addEventListener('click', function() {
+            document.getElementById('search_qr').value = content;
+            document.body.removeChild(confirmModal);
+            closeScanner();
+            performSearchByQR(content);
+        });
+
+        document.getElementById('cancel-scan').addEventListener('click', function() {
+            document.body.removeChild(confirmModal);
+            // Continuar escaneando
+        });
+    }
+
     // Iniciar câmera
-    Instascan.Camera.getCameras().then(function (cameras) {
+    Instascan.Camera.getCameras().then(function (availableCameras) {
+        cameras = availableCameras;
         if (cameras.length > 0) {
-            // Usar câmera traseira se disponível (geralmente a última)
-            const camera = cameras[cameras.length - 1];
-            scanner.start(camera);
+            // Configurar seletor de câmera se houver múltiplas câmeras
+            if (cameras.length > 1) {
+                const cameraSelector = document.getElementById('camera-selector');
+                const selectorContainer = document.getElementById('camera-selector-container');
+
+                cameraSelector.innerHTML = '';
+                cameras.forEach((camera, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = camera.name || `Câmera ${index + 1}`;
+                    cameraSelector.appendChild(option);
+                });
+
+                selectorContainer.style.display = 'block';
+
+                cameraSelector.addEventListener('change', function() {
+                    const selectedIndex = parseInt(this.value);
+                    switchCamera(selectedIndex);
+                });
+            }
+
+            // Tentar usar câmera traseira primeiro (geralmente tem "back" no nome ou é a última)
+            let initialCameraIndex = cameras.length - 1; // Última câmera (geralmente traseira)
+
+            // Procurar por câmera traseira pelo nome
+            for (let i = 0; i < cameras.length; i++) {
+                const cameraName = cameras[i].name.toLowerCase();
+                if (cameraName.includes('back') || cameraName.includes('traseira') || cameraName.includes('rear')) {
+                    initialCameraIndex = i;
+                    break;
+                }
+            }
+
+            startCamera(initialCameraIndex);
         } else {
             showMessage('Nenhuma câmera encontrada.', 'error');
             closeScanner();
@@ -875,6 +950,27 @@ function startQrScan() {
         console.error('Erro ao acessar câmera:', e);
         showMessage('Erro ao acessar câmera: ' + e.message, 'error');
         closeScanner();
+    });
+
+    function startCamera(cameraIndex) {
+        if (scanner && cameras[cameraIndex]) {
+            currentCamera = cameras[cameraIndex];
+            scanner.start(currentCamera);
+        }
+    }
+
+    function switchCamera(cameraIndex) {
+        if (scanner && cameras[cameraIndex]) {
+            scanner.stop().then(() => {
+                startCamera(cameraIndex);
+            });
+        }
+    }
+
+    // Botão de escaneamento manual (opcional)
+    document.getElementById('manual-scan-btn').addEventListener('click', function() {
+        // Esta funcionalidade pode ser implementada se necessário
+        showMessage('Posicione o código na câmera e aguarde a detecção automática.', 'info');
     });
 
     // Função para fechar scanner
