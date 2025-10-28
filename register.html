@@ -58,6 +58,68 @@
             </form>
             <div id="message" class="message" style="display: none;"></div>
         </div>
+
+        <!-- Tabela de Usuários Cadastrados -->
+        <div class="form-container" style="margin-top: 40px;">
+            <h2>Usuários Cadastrados</h2>
+            <div id="users-table-container">
+                <table id="users-table" class="data-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Nome Completo</th>
+                            <th>Usuário</th>
+                            <th>Nível de Acesso</th>
+                            <th>Status</th>
+                            <th>Data de Criação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                    </tbody>
+                </table>
+                <div id="loading-users" class="loading">Carregando usuários...</div>
+                <div id="no-users" class="no-data" style="display: none;">Nenhum usuário cadastrado ainda.</div>
+            </div>
+        </div>
+
+        <!-- Modal para editar usuário -->
+        <div id="edit-user-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Editar Usuário</h3>
+                    <button class="close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-user-form">
+                        <div class="form-group">
+                            <label for="edit_full_name">Nome Completo:</label>
+                            <input type="text" id="edit_full_name" name="edit_full_name" required placeholder="Digite o nome completo" autocomplete="name">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_username">Usuário:</label>
+                            <input type="text" id="edit_username" name="edit_username" required placeholder="Digite o usuário" autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_role">Nível de Acesso:</label>
+                            <select id="edit_role" name="edit_role" required>
+                                <option value="Operador">Operador</option>
+                                <option value="Supervisor">Supervisor</option>
+                                <option value="Diretoria">Diretoria</option>
+                                <option value="Administrador">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_is_active">Status:</label>
+                            <select id="edit_is_active" name="edit_is_active" required>
+                                <option value="true">Ativo</option>
+                                <option value="false">Inativo</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn">Salvar Alterações</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Supabase CDN -->
