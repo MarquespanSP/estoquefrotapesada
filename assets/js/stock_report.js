@@ -228,7 +228,7 @@ function renderTable() {
         return `
             <tr class="movement-row" data-id="${movement.id}">
                 <td>${date}</td>
-                <td>${piece.id || 'N/A'} - ${piece.name || 'N/A'}</td>
+                <td>${piece.code || 'N/A'} - ${piece.name || 'N/A'}</td>
                 <td>${supplier.name || 'N/A'}</td>
                 <td>${location.code || 'N/A'}</td>
                 <td><span class="movement-type ${typeClass}">${movement.movement_type === 'entrada' ? 'Entrada' : 'Saída'}</span></td>
