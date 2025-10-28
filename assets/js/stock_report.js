@@ -479,9 +479,9 @@ async function generateMovementPDF(movementId) {
         });
 
         // Cabeçalho da empresa
-        doc.setFillColor(46, 139, 87); // Verde escuro
+        doc.setFillColor(255, 255, 255); // Branco
         doc.rect(margin, currentY - 5, pageWidth - 2 * margin, 20, 'F');
-        doc.setTextColor(255, 255, 255); // Branco
+        doc.setTextColor(0, 0, 0); // Preto
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
 
