@@ -319,7 +319,14 @@ async function saveAllMovements() {
         }
 
         console.log('Movimentações registradas com sucesso:', insertedMovements);
-        showMessage(`${movements.length} movimentações de ${movementType} registradas com sucesso!`, 'success');
+
+        // Gerar código único da movimentação
+        const movementCode = generateMovementCode(insertedMovements[0].id);
+
+        // Gerar PDF da requisição
+        await generateMovementPDF(insertedMovements, movementCode, movementType, userSession);
+
+        showMessage(`${movements.length} movimentações de ${movementType} registradas com sucesso! Código: ${movementCode}`, 'success');
 
         // Limpar lista
         selectedPieces = [];
@@ -635,5 +642,159 @@ async function registerSupplier() {
     } catch (error) {
         console.error('Erro ao cadastrar fornecedor:', error);
         showMessage(error.message, 'error');
+    }
+}
+
+// Função para gerar código único da movimentação
+function generateMovementCode(movementId) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+
+    return `MOV-${year}${month}${day}-${hours}${minutes}${seconds}-${movementId}`;
+}
+
+// Função para gerar PDF da requisição de material
+async function generateMovementPDF(movements, movementCode, movementType, userSession) {
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Configurações da página
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20;
+        let currentY = margin;
+
+        // Logo da empresa (assumindo que existe um logo.png)
+        // Como não temos acesso direto ao logo, vamos usar texto estilizado
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('ESTOQUE FROTA PESADA', pageWidth / 2, currentY, { align: 'center' });
+        currentY += 15;
+
+        // Linha separadora
+        doc.setLineWidth(0.5);
+        doc.line(margin, currentY, pageWidth - margin, currentY);
+        currentY += 10;
+
+        // Título da requisição
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        const title = movementType === 'saida' ? 'REQUISIÇÃO DE MATERIAL' : 'ENTRADA DE MATERIAL';
+        doc.text(title, pageWidth / 2, currentY, { align: 'center' });
+        currentY += 15;
+
+        // Código da movimentação em destaque vermelho
+        doc.setFontSize(14);
+        doc.setTextColor(255, 0, 0); // Vermelho
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Código: ${movementCode}`, pageWidth / 2, currentY, { align: 'center' });
+        currentY += 10;
+
+        // Resetar cor para preto
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'normal');
+
+        // Data e hora
+        doc.setFontSize(12);
+        const now = new Date();
+        const dateTimeStr = now.toLocaleString('pt-BR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        doc.text(`Data/Hora: ${dateTimeStr}`, margin, currentY);
+        currentY += 10;
+
+        // Usuário que fez a movimentação
+        doc.text(`Atendente: ${userSession.username}`, margin, currentY);
+        currentY += 15;
+
+        // Tabela de peças
+        const tableStartY = currentY;
+
+        // Cabeçalhos da tabela
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        const colWidths = [60, 80, 30]; // Larguras das colunas
+        const headers = ['Código', 'Nome da Peça', 'Qtd'];
+
+        let currentX = margin;
+        headers.forEach((header, index) => {
+            doc.text(header, currentX, currentY);
+            currentX += colWidths[index];
+        });
+
+        currentY += 8;
+
+        // Linha separadora da tabela
+        doc.setLineWidth(0.3);
+        doc.line(margin, currentY, pageWidth - margin, currentY);
+        currentY += 5;
+
+        // Dados das peças
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+
+        movements.forEach(movement => {
+            currentX = margin;
+
+            // Buscar informações da peça
+            const pieceInfo = selectedPieces.find(p => p.piece.id === movement.piece_id);
+            if (pieceInfo) {
+                const pieceData = [
+                    pieceInfo.piece.code,
+                    pieceInfo.piece.name.length > 25 ? pieceInfo.piece.name.substring(0, 25) + '...' : pieceInfo.piece.name,
+                    Math.abs(movement.quantity).toString()
+                ];
+
+                pieceData.forEach((data, index) => {
+                    doc.text(data, currentX, currentY);
+                    currentX += colWidths[index];
+                });
+
+                currentY += 8;
+
+                // Verificar se precisa de nova página
+                if (currentY > pageHeight - 60) {
+                    doc.addPage();
+                    currentY = margin;
+                }
+            }
+        });
+
+        // Espaço para assinaturas
+        currentY += 20;
+
+        // Linha para assinatura do atendente
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(12);
+        doc.text('___________________________________________', margin, currentY);
+        currentY += 8;
+        doc.text('Assinatura do Atendente', margin, currentY);
+        currentY += 15;
+
+        // Linha para assinatura do solicitante
+        doc.text('___________________________________________', margin, currentY);
+        currentY += 8;
+        doc.text('Assinatura do Solicitante', margin, currentY);
+
+        // Salvar o PDF
+        const fileName = `requisicao_${movementCode}.pdf`;
+        doc.save(fileName);
+
+        console.log('PDF gerado com sucesso:', fileName);
+
+    } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        showMessage('Erro ao gerar PDF da requisição.', 'error');
     }
 }
