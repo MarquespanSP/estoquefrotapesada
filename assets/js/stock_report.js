@@ -478,20 +478,24 @@ async function generateMovementPDF(movementId) {
             logoImg.onerror = () => resolve(); // Continuar mesmo se erro
         });
 
-        // Adicionar logo no canto superior direito se carregado
-        if (logoLoaded) {
-            const logoWidth = 40;
-            const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
-            doc.addImage(logoImg, 'PNG', pageWidth - margin - logoWidth, currentY - 5, logoWidth, logoHeight);
-        }
-
         // Cabeçalho da empresa
         doc.setFillColor(46, 139, 87); // Verde escuro
         doc.rect(margin, currentY - 5, pageWidth - 2 * margin, 20, 'F');
         doc.setTextColor(255, 255, 255); // Branco
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
-        doc.text('ESTOQUE FROTA PESADA', pageWidth / 2, currentY + 8, { align: 'center' });
+
+        // Adicionar logo ao lado do título se carregado
+        if (logoLoaded) {
+            const logoWidth = 40;
+            const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
+            doc.addImage(logoImg, 'PNG', margin + 5, currentY - 5, logoWidth, logoHeight);
+            // Posicionar texto ao lado do logo
+            doc.text('ESTOQUE FROTA PESADA', margin + logoWidth + 15, currentY + 8);
+        } else {
+            doc.text('ESTOQUE FROTA PESADA', pageWidth / 2, currentY + 8, { align: 'center' });
+        }
+
         currentY += 25;
 
         // Linha separadora
