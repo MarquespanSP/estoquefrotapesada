@@ -555,7 +555,7 @@ async function generateMovementPDF(movementId) {
         currentX = margin + 5;
         const piece = movement.pieces || {};
         const pieceData = [
-            piece.code || 'N/A',
+            movement.id.toString(), // Código da movimentação do banco de dados
             piece.name || 'N/A',
             Math.abs(movement.quantity).toString()
         ];
