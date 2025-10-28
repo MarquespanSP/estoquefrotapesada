@@ -502,17 +502,6 @@ async function scanQRCode() {
             throw new Error('Este navegador não suporta acesso à câmera');
         }
 
-        // Solicitar permissão para acessar a câmera
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'environment' } // Usar câmera traseira se disponível
-        });
-
-        // Criar elemento de vídeo para mostrar a câmera
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        video.setAttribute('playsinline', true); // Para iOS
-        video.play();
-
         // Criar modal para mostrar a câmera
         const modal = document.createElement('div');
         modal.style.cssText = `
@@ -548,23 +537,22 @@ async function scanQRCode() {
             display: inline-block;
         `;
 
+        // Criar elemento de vídeo
+        const video = document.createElement('video');
         video.style.cssText = `
             width: 100%;
             max-width: 300px;
             height: auto;
             border: 2px solid #ccc;
             border-radius: 5px;
+            transform: scaleX(-1);
         `;
+        video.setAttribute('playsinline', true); // Para iOS
 
         const cancelBtn = document.createElement('button');
         cancelBtn.textContent = 'Cancelar';
         cancelBtn.className = 'btn btn-secondary';
         cancelBtn.style.marginTop = '10px';
-        cancelBtn.onclick = function() {
-            // Parar stream da câmera
-            stream.getTracks().forEach(track => track.stop());
-            document.body.removeChild(modal);
-        };
 
         videoContainer.appendChild(video);
         modalContent.appendChild(title);
@@ -573,25 +561,67 @@ async function scanQRCode() {
         modal.appendChild(modalContent);
         document.body.appendChild(modal);
 
-        // Inicializar ZXing
-        const codeReader = new ZXing.BrowserMultiFormatReader();
+        // Inicializar ZXing com suporte a múltiplos formatos
+        const hints = new Map();
+        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+            ZXing.BarcodeFormat.QR_CODE,
+            ZXing.BarcodeFormat.CODE_128,
+            ZXing.BarcodeFormat.CODE_39,
+            ZXing.BarcodeFormat.EAN_13,
+            ZXing.BarcodeFormat.EAN_8,
+            ZXing.BarcodeFormat.UPC_A,
+            ZXing.BarcodeFormat.UPC_E,
+            ZXing.BarcodeFormat.ITF,
+            ZXing.BarcodeFormat.CODABAR,
+            ZXing.BarcodeFormat.DATA_MATRIX,
+            ZXing.BarcodeFormat.PDF_417
+        ]);
 
-        // Tentar detectar códigos
-        codeReader.decodeFromVideoDevice(null, video, (result, err) => {
+        const codeReader = new ZXing.BrowserMultiFormatReader(hints);
+
+        // Obter lista de dispositivos de vídeo
+        const videoInputDevices = await codeReader.getVideoInputDevices();
+        if (videoInputDevices.length === 0) {
+            throw new Error('Nenhuma câmera encontrada');
+        }
+
+        // Selecionar câmera traseira se disponível
+        let selectedDeviceId = videoInputDevices[0].deviceId;
+        for (const device of videoInputDevices) {
+            const deviceName = device.label.toLowerCase();
+            if (deviceName.includes('back') || deviceName.includes('traseira') || deviceName.includes('rear')) {
+                selectedDeviceId = device.deviceId;
+                break;
+            }
+        }
+
+        // Função para cancelar
+        const cancelScan = () => {
+            codeReader.reset();
+            document.body.removeChild(modal);
+        };
+
+        cancelBtn.onclick = cancelScan;
+
+        // Fechar modal clicando fora
+        modal.onclick = function(event) {
+            if (event.target === modal) {
+                cancelScan();
+            }
+        };
+
+        // Iniciar escaneamento
+        codeReader.decodeFromVideoDevice(selectedDeviceId, video, (result, err) => {
             if (result) {
                 // Código detectado com sucesso
                 const qrCodeInput = document.getElementById('qr_code');
                 qrCodeInput.value = result.text;
 
-                // Parar stream da câmera
-                stream.getTracks().forEach(track => track.stop());
-                document.body.removeChild(modal);
+                // Fechar modal
+                cancelScan();
 
                 // Mostrar mensagem de sucesso
                 showMessage('Código escaneado com sucesso!', 'success');
-
-                // Parar o reader
-                codeReader.reset();
             }
 
             if (err && !(err instanceof ZXing.NotFoundException)) {
