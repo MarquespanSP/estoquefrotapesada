@@ -155,7 +155,7 @@ async function addPieceToList() {
         try {
             const { data: lastMovement, error } = await supabaseClient
                 .from('stock_movements')
-                .select('location_id, locations(code, description)')
+                .select('location_id, locations(id, code, description)')
                 .eq('piece_id', selectedPiece.id)
                 .order('created_at', { ascending: false })
                 .limit(1);
@@ -168,6 +168,7 @@ async function addPieceToList() {
         }
 
         // Adicionar à lista
+        const newIndex = selectedPieces.length;
         selectedPieces.push({
             piece: selectedPiece,
             quantity: quantity,
@@ -177,12 +178,20 @@ async function addPieceToList() {
         // Atualizar interface
         updateSelectedPiecesTable();
 
+        // Se não há local padrão, abrir modal para seleção obrigatória
+        if (!defaultLocation) {
+            showMessage('Selecione o local para esta peça.', 'info');
+            openLocationModal(newIndex);
+        }
+
         // Limpar campos
         document.getElementById('piece_search').value = '';
         document.getElementById('quantity').value = '';
         selectedPiece = null;
 
-        showMessage('Peça adicionada à lista!', 'success');
+        if (defaultLocation) {
+            showMessage('Peça adicionada à lista!', 'success');
+        }
 
     } catch (error) {
         console.error('Erro ao adicionar peça:', error);
