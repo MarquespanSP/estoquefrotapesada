@@ -320,8 +320,8 @@ async function saveAllMovements() {
 
         console.log('Movimentações registradas com sucesso:', insertedMovements);
 
-        // Gerar código único da movimentação
-        const movementCode = generateMovementCode(insertedMovements[0].id);
+        // Usar código incremental da movimentação
+        const movementCode = insertedMovements[0].code;
 
         // Gerar PDF da requisição apenas para saídas
         if (movementType === 'saida') {
