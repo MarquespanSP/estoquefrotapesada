@@ -664,7 +664,12 @@ function generateMovementCode(movementId) {
 async function generateMovementPDF(movements, movementCode, movementType, userSession) {
     try {
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4',
+            compress: true
+        });
 
         // Configurações da página
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -672,28 +677,54 @@ async function generateMovementPDF(movements, movementCode, movementType, userSe
         const margin = 20;
         let currentY = margin;
 
-        // Logo da empresa (assumindo que existe um logo.png)
-        // Como não temos acesso direto ao logo, vamos usar texto estilizado
-        doc.setFontSize(20);
+        // Carregar logo da empresa
+        let logoLoaded = false;
+        const logoImg = new Image();
+        logoImg.src = 'logo.png';
+        await new Promise((resolve) => {
+            logoImg.onload = () => {
+                logoLoaded = true;
+                resolve();
+            };
+            logoImg.onerror = () => resolve(); // Continuar mesmo se erro
+        });
+
+        // Cabeçalho da empresa
+        doc.setFillColor(255, 255, 255); // Branco
+        doc.rect(margin, currentY - 5, pageWidth - 2 * margin, 20, 'F');
+        doc.setTextColor(0, 0, 0); // Preto
+        doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
-        doc.text('ESTOQUE - FROTA PESADA', pageWidth / 2, currentY, { align: 'center' });
-        currentY += 8;
+
+        // Adicionar logo ao lado do título se carregado
+        if (logoLoaded) {
+            const logoWidth = 40;
+            const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
+            doc.addImage(logoImg, 'PNG', margin + 5, currentY - 5, logoWidth, logoHeight);
+            // Posicionar texto ao lado do logo
+            doc.text('ESTOQUE FROTA PESADA', margin + logoWidth + 15, currentY + 8);
+        } else {
+            doc.text('ESTOQUE FROTA PESADA', pageWidth / 2, currentY + 8, { align: 'center' });
+        }
+
+        currentY += 15;
 
         // Linha separadora
-        doc.setLineWidth(0.5);
+        doc.setDrawColor(46, 139, 87); // Verde
+        doc.setLineWidth(1);
         doc.line(margin, currentY, pageWidth - margin, currentY);
-        currentY += 8;
+        currentY += 10;
 
         // Título da requisição
+        doc.setTextColor(46, 139, 87); // Verde
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        const title = movementType === 'saida' ? 'REQUISIÇÃO DE MATERIAL' : 'ENTRADA DE MATERIAL';
-        doc.text(title, pageWidth / 2, currentY, { align: 'center' });
-        currentY += 8;
+        doc.text('REQUISIÇÃO DE MATERIAL', pageWidth / 2, currentY, { align: 'center' });
+        currentY += 10;
 
-        // Código da movimentação em destaque vermelho
+        // Código da movimentação
+        doc.setTextColor(220, 53, 69); // Vermelho
         doc.setFontSize(14);
-        doc.setTextColor(255, 0, 0); // Vermelho
         doc.setFont('helvetica', 'bold');
         doc.text(`Código: ${movementCode}`, pageWidth / 2, currentY, { align: 'center' });
         currentY += 10;
@@ -718,52 +749,62 @@ async function generateMovementPDF(movements, movementCode, movementType, userSe
 
         // Usuário que fez a movimentação
         doc.text(`Atendente: ${userSession.username}`, margin, currentY);
-        currentY += 15;
+        currentY += 10;
 
-        // Tabela de peças
+        // Tabela de peças com bordas
         const tableStartY = currentY;
 
         // Cabeçalhos da tabela
+        doc.setFillColor(46, 139, 87); // Verde
+        doc.rect(margin, currentY, pageWidth - 2 * margin, 10, 'F');
+        doc.setTextColor(255, 255, 255); // Branco
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(11);
+
         const colWidths = [60, 80, 30]; // Larguras das colunas
         const headers = ['Código', 'Nome da Peça', 'Qtd'];
 
-        let currentX = margin;
+        let currentX = margin + 5;
         headers.forEach((header, index) => {
-            doc.text(header, currentX, currentY);
+            doc.text(header, currentX, currentY + 8);
             currentX += colWidths[index];
         });
 
-        currentY += 8;
+        currentY += 12;
 
         // Linha separadora da tabela
-        doc.setLineWidth(0.3);
+        doc.setDrawColor(46, 139, 87); // Verde
+        doc.setLineWidth(0.5);
         doc.line(margin, currentY, pageWidth - margin, currentY);
         currentY += 5;
 
         // Dados das peças
+        doc.setTextColor(0, 0, 0); // Preto
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
 
         movements.forEach(movement => {
-            currentX = margin;
+            // Fundo alternado para a linha de dados
+            doc.setFillColor(248, 249, 250); // Cinza claro
+            doc.rect(margin, currentY, pageWidth - 2 * margin, 12, 'F');
+
+            currentX = margin + 5;
 
             // Buscar informações da peça
             const pieceInfo = selectedPieces.find(p => p.piece.id === movement.piece_id);
             if (pieceInfo) {
                 const pieceData = [
-                    pieceInfo.piece.code,
-                    pieceInfo.piece.name.length > 25 ? pieceInfo.piece.name.substring(0, 25) + '...' : pieceInfo.piece.name,
+                    pieceInfo.piece.code || 'N/A',
+                    pieceInfo.piece.name || 'N/A',
                     Math.abs(movement.quantity).toString()
                 ];
 
                 pieceData.forEach((data, index) => {
-                    doc.text(data, currentX, currentY);
+                    doc.text(data, currentX, currentY + 8);
                     currentX += colWidths[index];
                 });
 
-                currentY += 8;
+                currentY += 12;
 
                 // Verificar se precisa de nova página
                 if (currentY > pageHeight - 60) {
@@ -773,21 +814,32 @@ async function generateMovementPDF(movements, movementCode, movementType, userSe
             }
         });
 
-        // Espaço para assinaturas
+        // Bordas da tabela
+        doc.setDrawColor(46, 139, 87); // Verde
+        doc.setLineWidth(0.5);
+        doc.rect(margin, tableStartY, pageWidth - 2 * margin, currentY - tableStartY);
+
         currentY += 20;
 
-        // Linha para assinatura do atendente
+        // Espaço para assinaturas lado a lado
+        currentY += 10;
+
+        // Posições para assinaturas lado a lado
+        const leftX = margin;
+        const rightX = pageWidth / 2 + margin;
+
+        // Assinatura do atendente (esquerda)
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(12);
-        doc.text('___________________________________________', margin, currentY);
+        doc.setDrawColor(0, 0, 0); // Preto
+        doc.setLineWidth(0.3);
+        doc.line(leftX, currentY, leftX + 80, currentY);
         currentY += 8;
-        doc.text('Assinatura do Atendente', margin, currentY);
-        currentY += 15;
+        doc.text('Assinatura do Atendente', leftX, currentY);
 
-        // Linha para assinatura do solicitante
-        doc.text('___________________________________________', margin, currentY);
-        currentY += 8;
-        doc.text('Assinatura do Solicitante', margin, currentY);
+        // Assinatura do solicitante (direita)
+        doc.line(rightX, currentY - 8, rightX + 80, currentY - 8);
+        doc.text('Assinatura do Solicitante', rightX, currentY);
 
         // Salvar o PDF
         const fileName = `requisicao_${movementCode}.pdf`;
