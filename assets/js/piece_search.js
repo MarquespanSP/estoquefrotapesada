@@ -844,7 +844,7 @@ function startQrScan() {
                     <label for="camera-selector" style="display: block; margin-bottom: 5px; font-weight: 500;">Selecionar Câmera:</label>
                     <select id="camera-selector" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></select>
                 </div>
-                <video id="qr-video" style="width: 100%; max-width: 400px; height: auto; transform: scaleX(-1);"></video>
+                <video id="qr-video" style="width: 100%; max-width: 400px; height: auto; transform: scaleX(0);"></video>
                 <p style="text-align: center; margin-top: 10px;">Posicione o QR code ou código de barras na frente da câmera</p>
                 <div style="text-align: center; margin-top: 15px;">
                     <button id="manual-scan-btn" class="btn" style="display: none;">Escanear Manualmente</button>
