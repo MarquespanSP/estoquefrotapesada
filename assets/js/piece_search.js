@@ -40,7 +40,12 @@ function setupSearch() {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             const query = searchInput.value.trim();
-            performSearch(query);
+            const qrQuery = document.getElementById('search_qr').value.trim();
+            if (qrQuery) {
+                performSearchByQR(qrQuery);
+            } else {
+                performSearch(query);
+            }
         });
     }
 }
@@ -652,6 +657,96 @@ async function loadLocations() {
     } catch (error) {
         console.error('Erro ao carregar localizações:', error);
         showMessage('Erro ao carregar localizações. Tente novamente.', 'error');
+    }
+}
+
+async function performSearchByQR(qrCode) {
+    try {
+        document.getElementById('search_suggestions').style.display = 'none';
+
+        // Buscar peça pelo QR code
+        const { data: pieces, error: pieceError } = await supabaseClient
+            .from('pieces')
+            .select('id, code, name, supplier_id, location_id, qr_code')
+            .eq('is_active', true)
+            .eq('qr_code', qrCode)
+            .limit(1);
+
+        if (pieceError) throw pieceError;
+
+        if (pieces.length === 0) {
+            showMessage('Peça não encontrada com este QR code.', 'error');
+            document.getElementById('search-results').style.display = 'none';
+            return;
+        }
+
+        const piece = pieces[0];
+
+        // Buscar fornecedor (apenas se supplier_id não for null)
+        let supplier = null;
+        if (piece.supplier_id) {
+            const { data: supplierData, error: supplierError } = await supabaseClient
+                .from('suppliers')
+                .select('name')
+                .eq('id', piece.supplier_id)
+                .single();
+
+            if (supplierError) {
+                console.warn('Erro ao buscar fornecedor:', supplierError);
+            } else {
+                supplier = supplierData;
+            }
+        }
+
+        // Buscar localização da peça (se definida)
+        let pieceLocation = null;
+        if (piece.location_id) {
+            const { data: locData, error: locError } = await supabaseClient
+                .from('locations')
+                .select('code, description')
+                .eq('id', piece.location_id)
+                .single();
+
+            if (!locError) {
+                pieceLocation = locData;
+            }
+        }
+
+        // Buscar movimentações de estoque para calcular quantidade por local
+        const { data: movements, error: movementError } = await supabaseClient
+            .from('stock_movements')
+            .select(`
+                quantity,
+                locations (
+                    code,
+                    description
+                )
+            `)
+            .eq('piece_id', piece.id);
+
+        if (movementError) throw movementError;
+
+        // Calcular estoque por local
+        const stockByLocation = {};
+        movements.forEach(movement => {
+            const locationCode = movement.locations.code;
+            if (!stockByLocation[locationCode]) {
+                stockByLocation[locationCode] = {
+                    code: locationCode,
+                    description: movement.locations.description,
+                    quantity: 0
+                };
+            }
+            stockByLocation[locationCode].quantity += movement.quantity;
+        });
+
+        // Exibir resultados
+        displaySearchResults(piece, supplier?.name, stockByLocation, pieceLocation);
+
+    } catch (error) {
+        console.error('Erro na busca por QR:', error.message);
+        showMessage('Erro na busca por QR: ' + error.message, 'error');
+        document.getElementById('search-results').style.display = 'none';
     }
 }
 
