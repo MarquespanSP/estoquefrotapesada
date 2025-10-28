@@ -48,6 +48,14 @@ function setupSearch() {
             }
         });
     }
+
+    // Configurar botão de escanear QR
+    const scanQrBtn = document.getElementById('scan_qr_btn');
+    if (scanQrBtn) {
+        scanQrBtn.addEventListener('click', function() {
+            startQrScan();
+        });
+    }
 }
 
 async function searchPiecesForLocation(query) {
@@ -810,4 +818,80 @@ async function registerSupplier() {
         console.error('Erro ao cadastrar fornecedor:', error);
         showMessage(error.message, 'error');
     }
+}
+
+// Função para iniciar o escaneamento de QR Code
+function startQrScan() {
+    // Verificar se o navegador suporta getUserMedia
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showMessage('Seu navegador não suporta acesso à câmera. Tente usar um navegador mais recente.', 'error');
+        return;
+    }
+
+    // Criar modal para o scanner
+    const scannerModal = document.createElement('div');
+    scannerModal.id = 'qr-scanner-modal';
+    scannerModal.className = 'modal';
+    scannerModal.style.display = 'block';
+    scannerModal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Escanear QR Code ou Código de Barras</h3>
+                <button class="close" id="close-scanner">&times;</button>
+            </div>
+            <div class="modal-body">
+                <video id="qr-video" style="width: 100%; max-width: 400px; height: auto;"></video>
+                <p style="text-align: center; margin-top: 10px;">Posicione o QR code ou código de barras na frente da câmera</p>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(scannerModal);
+
+    let scanner = null;
+
+    // Inicializar scanner
+    scanner = new Instascan.Scanner({ video: document.getElementById('qr-video') });
+
+    scanner.addListener('scan', function (content) {
+        // Quando um código é escaneado, preencher o campo e fechar modal
+        document.getElementById('search_qr').value = content;
+        closeScanner();
+        // Opcional: executar busca automaticamente
+        performSearchByQR(content);
+    });
+
+    // Iniciar câmera
+    Instascan.Camera.getCameras().then(function (cameras) {
+        if (cameras.length > 0) {
+            // Usar câmera traseira se disponível (geralmente a última)
+            const camera = cameras[cameras.length - 1];
+            scanner.start(camera);
+        } else {
+            showMessage('Nenhuma câmera encontrada.', 'error');
+            closeScanner();
+        }
+    }).catch(function (e) {
+        console.error('Erro ao acessar câmera:', e);
+        showMessage('Erro ao acessar câmera: ' + e.message, 'error');
+        closeScanner();
+    });
+
+    // Função para fechar scanner
+    function closeScanner() {
+        if (scanner) {
+            scanner.stop();
+        }
+        document.body.removeChild(scannerModal);
+    }
+
+    // Event listener para fechar modal
+    document.getElementById('close-scanner').addEventListener('click', closeScanner);
+
+    // Fechar modal clicando fora
+    scannerModal.addEventListener('click', function(event) {
+        if (event.target === scannerModal) {
+            closeScanner();
+        }
+    });
 }
