@@ -62,8 +62,8 @@
         <!-- Tabela de Usuários Cadastrados -->
         <div class="form-container" style="margin-top: 40px;">
             <h2>Usuários Cadastrados</h2>
-            <div id="users-table-container">
-                <table id="users-table" class="data-table" style="display: none;">
+            <div id="users-table-container" style="overflow-x: auto;">
+                <table id="users-table" class="data-table" style="display: none; min-width: 800px;">
                     <thead>
                         <tr>
                             <th>Nome Completo</th>
@@ -107,6 +107,14 @@
                                 <option value="Diretoria">Diretoria</option>
                                 <option value="Administrador">Administrador</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_password">Nova Senha (opcional):</label>
+                            <input type="password" id="edit_password" name="edit_password" placeholder="Deixe em branco para manter a senha atual" autocomplete="new-password">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_confirm_password">Confirmar Nova Senha:</label>
+                            <input type="password" id="edit_confirm_password" name="edit_confirm_password" placeholder="Confirme a nova senha" autocomplete="new-password">
                         </div>
                         <div class="form-group">
                             <label for="edit_is_active">Status:</label>

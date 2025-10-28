@@ -156,20 +156,36 @@ function openEditUserModal(user) {
 }
 
 // Função para salvar edição do usuário
-async function saveUserEdit(fullName, username, role, isActive) {
+async function saveUserEdit(fullName, username, role, password, confirmPassword, isActive) {
     try {
+        // Validações básicas
+        if (password && password !== confirmPassword) {
+            throw new Error('As senhas não coincidem');
+        }
+
+        if (password && password.length < 6) {
+            throw new Error('A senha deve ter pelo menos 6 caracteres');
+        }
+
+        // Preparar dados para atualização
+        const updateData = {
+            full_name: fullName,
+            username: username,
+            role: role,
+            is_active: isActive,
+            updated_at: new Date().toISOString()
+        };
+
+        // Incluir senha apenas se foi fornecida
+        if (password) {
+            updateData.password_hash = password; // Nota: em produção, use hash seguro
+        }
+
         const { data: updatedUser, error } = await supabaseClient
             .from('users')
-            .update({
-                full_name: fullName,
-                username: username,
-                role: role,
-                is_active: isActive,
-                updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq('id', currentEditingUserId)
-            .select()
-            .single();
+            .select('*');
 
         if (error) throw error;
 
@@ -216,9 +232,11 @@ function setupEditUserModal() {
         const fullName = document.getElementById('edit_full_name').value.trim();
         const username = document.getElementById('edit_username').value.trim();
         const role = document.getElementById('edit_role').value;
+        const password = document.getElementById('edit_password').value;
+        const confirmPassword = document.getElementById('edit_confirm_password').value;
         const isActive = document.getElementById('edit_is_active').value === 'true';
 
-        saveUserEdit(fullName, username, role, isActive);
+        saveUserEdit(fullName, username, role, password, confirmPassword, isActive);
     });
 }
 
