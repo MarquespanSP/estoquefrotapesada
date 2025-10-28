@@ -496,27 +496,27 @@ async function generateMovementPDF(movementId) {
             doc.text('ESTOQUE FROTA PESADA', pageWidth / 2, currentY + 8, { align: 'center' });
         }
 
-        currentY += 25;
+        currentY += 15;
 
         // Linha separadora
         doc.setDrawColor(46, 139, 87); // Verde
         doc.setLineWidth(1);
         doc.line(margin, currentY, pageWidth - margin, currentY);
-        currentY += 15;
+        currentY += 10;
 
         // Título da requisição
         doc.setTextColor(46, 139, 87); // Verde
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
         doc.text('REQUISIÇÃO DE MATERIAL', pageWidth / 2, currentY, { align: 'center' });
-        currentY += 15;
+        currentY += 10;
 
         // Código da movimentação
         doc.setTextColor(220, 53, 69); // Vermelho
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text(`Código: ${movement.code || 'N/A'}`, pageWidth / 2, currentY, { align: 'center' });
-        currentY += 15;
+        currentY += 10;
 
         // Resetar cor para preto
         doc.setTextColor(0, 0, 0);
