@@ -63,13 +63,21 @@ function applyOperatorStockPermissions() {
 
 // Função para permissões de Supervisor no controle de estoque
 function applySupervisorStockPermissions() {
-    // Supervisor vê todos os cards exceto "Exclusão de Lançamentos"
+    // Supervisor vê apenas: Cadastro de Peças, Movimentação de Estoque, Realizar Batimento, Gerenciamento de Locais, Localizar Peça
+    const allowedTitles = [
+        '📝 Cadastro de Peças',
+        '📦 Movimentação de Estoque',
+        '⚖️ Realizar Batimento',
+        '🏢 Gerenciamento de Locais',
+        '🔍 Localizar Peça'
+    ];
+
     const allCards = document.querySelectorAll('.stock-control-grid .stock-card');
 
     allCards.forEach(card => {
         const title = card.querySelector('h3').textContent;
 
-        if (!title.includes('🗑️ Exclusão de Lançamentos')) {
+        if (allowedTitles.some(allowedTitle => title.includes(allowedTitle))) {
             card.style.display = 'block';
         }
     });

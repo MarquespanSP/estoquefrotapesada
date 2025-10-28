@@ -58,14 +58,11 @@ function applyOperatorPermissions() {
 
 // Função para permissões de Supervisor
 function applySupervisorPermissions() {
-    // Supervisor vê todos os cards exceto Usuários
-    const allCards = document.querySelectorAll('.dashboard-grid .card');
-    allCards.forEach((card, index) => {
-        // Index 6 é o card de Usuários (0-based)
-        if (index !== 5) { // 0-based: 0=Controle, 1=Relatórios, 2=Manutenção, 3=Fornecedores, 4=Frota, 5=Usuários
-            card.style.display = 'block';
-        }
-    });
+    // Supervisor vê apenas o card "Controle de Estoque"
+    const stockControlCard = document.querySelector('.dashboard-grid .card:nth-child(1)');
+    if (stockControlCard) {
+        stockControlCard.style.display = 'block';
+    }
 }
 
 // Função para permissões de Diretoria
