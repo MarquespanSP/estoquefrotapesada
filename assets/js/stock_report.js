@@ -550,7 +550,7 @@ async function generateMovementPDF(movementId) {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(11);
 
-        const colWidths = [60, 80, 30]; // Larguras das colunas
+        const colWidths = [40, 100, 30]; // Larguras das colunas
         const headers = ['Código', 'Nome da Peça', 'Qtd'];
 
         let currentX = margin + 5;
@@ -559,7 +559,7 @@ async function generateMovementPDF(movementId) {
             currentX += colWidths[index];
         });
 
-        currentY += 12;
+        currentY += 10;
 
         // Linha separadora da tabela
         doc.setDrawColor(46, 139, 87); // Verde
