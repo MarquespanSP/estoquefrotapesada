@@ -323,8 +323,10 @@ async function saveAllMovements() {
         // Gerar código único da movimentação
         const movementCode = generateMovementCode(insertedMovements[0].id);
 
-        // Gerar PDF da requisição
-        await generateMovementPDF(insertedMovements, movementCode, movementType, userSession);
+        // Gerar PDF da requisição apenas para saídas
+        if (movementType === 'saida') {
+            await generateMovementPDF(insertedMovements, movementCode, movementType, userSession);
+        }
 
         showMessage(`${movements.length} movimentações de ${movementType} registradas com sucesso! Código: ${movementCode}`, 'success');
 
