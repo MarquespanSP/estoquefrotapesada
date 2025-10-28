@@ -492,7 +492,7 @@ async function generateMovementPDF(movementId) {
         doc.setTextColor(220, 53, 69); // Vermelho
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.text(`Código: ${movement.id}`, pageWidth / 2, currentY, { align: 'center' });
+        doc.text(`Código: ${movement.code || 'N/A'}`, pageWidth / 2, currentY, { align: 'center' });
         currentY += 15;
 
         // Resetar cor para preto
