@@ -218,6 +218,31 @@ function setupSaveAllButton() {
     }
 }
 
+// Função auxiliar para obter estoque por local
+async function getStockByLocation(pieceId) {
+    const { data: movements, error } = await supabaseClient
+        .from('stock_movements')
+        .select('quantity, location_id, locations(id, code, description)')
+        .eq('piece_id', pieceId);
+
+    if (error) throw error;
+
+    const stockByLocation = {};
+    movements.forEach(m => {
+        if (!stockByLocation[m.location_id]) {
+            stockByLocation[m.location_id] = {
+                id: m.location_id,
+                code: m.locations.code,
+                description: m.locations.description,
+                quantity: 0
+            };
+        }
+        stockByLocation[m.location_id].quantity += m.quantity;
+    });
+
+    return Object.values(stockByLocation).filter(loc => loc.quantity > 0);
+}
+
 async function addPieceToList() {
     try {
         const quantity = parseInt(document.getElementById('quantity').value);
@@ -232,27 +257,16 @@ async function addPieceToList() {
             throw new Error('Quantidade deve ser maior que zero');
         }
 
-        // Verificar se a peça já foi adicionada
-        const existingPiece = selectedPieces.find(p => p.piece.id === selectedPiece.id);
-        if (existingPiece) {
-            throw new Error('Esta peça já foi adicionada à lista');
-        }
-
-        // Verificar estoque se for saída
-        if (movementType === 'saida') {
-            const { data: currentStock, error: stockError } = await supabaseClient
-                .from('stock_movements')
-                .select('quantity')
-                .eq('piece_id', selectedPiece.id);
-
-            if (stockError) throw stockError;
-
-            const totalStock = currentStock.reduce((sum, movement) => sum + movement.quantity, 0);
-
-            if (totalStock < quantity) {
-                window.alert(`Estoque insuficiente para ${selectedPiece.code}. Disponível: ${totalStock}, Solicitado: ${quantity}`);
-                return;
-            }
+        // Obter local selecionado no formulário
+        const locationId = document.getElementById('location').value;
+        let selectedLocation = null;
+        if (locationId) {
+            const { data: loc, error } = await supabaseClient
+                .from('locations')
+                .select('id, code, description')
+                .eq('id', locationId)
+                .single();
+            if (!error) selectedLocation = loc;
         }
 
         // Buscar local padrão da peça (último local usado)
@@ -272,30 +286,109 @@ async function addPieceToList() {
             console.log('Não foi possível buscar local padrão:', error);
         }
 
-        // Adicionar à lista
-        const newIndex = selectedPieces.length;
-        selectedPieces.push({
-            piece: selectedPiece,
-            quantity: quantity,
-            location: defaultLocation
-        });
+        if (movementType === 'saida') {
+            // Distribuição para saídas
+            const locationsWithStock = await getStockByLocation(selectedPiece.id);
+            const totalStock = locationsWithStock.reduce((sum, loc) => sum + loc.quantity, 0);
 
-        // Atualizar interface
-        updateSelectedPiecesTable();
+            if (totalStock < quantity) {
+                window.alert(`Estoque insuficiente para ${selectedPiece.code}. Disponível: ${totalStock}, Solicitado: ${quantity}`);
+                return;
+            }
 
-        // Se não há local padrão, abrir modal para seleção obrigatória
-        if (!defaultLocation) {
-            showMessage('Selecione o local para esta peça.', 'info');
-            openLocationModal(newIndex);
-        }
+            // Determinar local primário
+            let primaryLocation = selectedLocation || defaultLocation;
+            if (!primaryLocation && locationsWithStock.length > 0) {
+                primaryLocation = locationsWithStock[0];
+            }
 
-        // Limpar campos
-        document.getElementById('piece_search').value = '';
-        document.getElementById('quantity').value = '';
-        selectedPiece = null;
+            if (!primaryLocation) {
+                throw new Error('Nenhum local com estoque disponível');
+            }
 
-        if (defaultLocation) {
-            showMessage('Peça adicionada à lista!', 'success');
+            // Distribuir quantidade
+            let remainingQuantity = quantity;
+            const entries = [];
+
+            // Primeiro, atribuir ao local primário
+            const primaryStock = locationsWithStock.find(loc => loc.id === primaryLocation.id)?.quantity || 0;
+            const assignToPrimary = Math.min(remainingQuantity, primaryStock);
+            if (assignToPrimary > 0) {
+                entries.push({
+                    piece: selectedPiece,
+                    quantity: assignToPrimary,
+                    location: primaryLocation
+                });
+                remainingQuantity -= assignToPrimary;
+            }
+
+            // Depois, outros locais ordenados por estoque decrescente
+            const otherLocations = locationsWithStock
+                .filter(loc => loc.id !== primaryLocation.id)
+                .sort((a, b) => b.quantity - a.quantity);
+
+            for (const loc of otherLocations) {
+                if (remainingQuantity <= 0) break;
+                const assign = Math.min(remainingQuantity, loc.quantity);
+                if (assign > 0) {
+                    entries.push({
+                        piece: selectedPiece,
+                        quantity: assign,
+                        location: loc
+                    });
+                    remainingQuantity -= assign;
+                }
+            }
+
+            // Adicionar entradas à lista
+            selectedPieces.push(...entries);
+
+            // Atualizar interface
+            updateSelectedPiecesTable();
+
+            // Limpar campos
+            document.getElementById('piece_search').value = '';
+            document.getElementById('quantity').value = '';
+            selectedPiece = null;
+
+            showMessage('Peça(s) adicionada(s) à lista!', 'success');
+
+        } else {
+            // Entradas: lógica original
+            // Verificar se a peça já foi adicionada (para entradas, evitar duplicatas)
+            const existingPiece = selectedPieces.find(p => p.piece.id === selectedPiece.id);
+            if (existingPiece) {
+                throw new Error('Esta peça já foi adicionada à lista');
+            }
+
+            // Usar local selecionado ou padrão
+            const locationToUse = selectedLocation || defaultLocation;
+
+            // Adicionar à lista
+            const newIndex = selectedPieces.length;
+            selectedPieces.push({
+                piece: selectedPiece,
+                quantity: quantity,
+                location: locationToUse
+            });
+
+            // Atualizar interface
+            updateSelectedPiecesTable();
+
+            // Se não há local, abrir modal para seleção obrigatória
+            if (!locationToUse) {
+                showMessage('Selecione o local para esta peça.', 'info');
+                openLocationModal(newIndex);
+            }
+
+            // Limpar campos
+            document.getElementById('piece_search').value = '';
+            document.getElementById('quantity').value = '';
+            selectedPiece = null;
+
+            if (locationToUse) {
+                showMessage('Peça adicionada à lista!', 'success');
+            }
         }
 
     } catch (error) {
@@ -311,47 +404,93 @@ function updateSelectedPiecesTable() {
     const saveBtn = document.getElementById('save_all_movements_btn');
 
     if (selectedPieces.length > 0) {
-        table.style.display = 'table';
+        table.style.display = 'none'; // Hide table
         noPiecesMsg.style.display = 'none';
         saveBtn.style.display = 'block';
 
-        tbody.innerHTML = '';
+        // Use a div container instead of table
+        let container = document.getElementById('selected-pieces-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'selected-pieces-container';
+            container.className = 'selected-pieces-list';
+            table.parentNode.insertBefore(container, table);
+        }
+        container.innerHTML = '';
 
+        // Agrupar peças por ID
+        const groupedPieces = {};
         selectedPieces.forEach((item, index) => {
-            const row = document.createElement('tr');
+            const pieceId = item.piece.id;
+            if (!groupedPieces[pieceId]) {
+                groupedPieces[pieceId] = {
+                    piece: item.piece,
+                    totalQuantity: 0,
+                    locations: [],
+                    indices: []
+                };
+            }
+            groupedPieces[pieceId].totalQuantity += item.quantity;
+            groupedPieces[pieceId].locations.push({
+                location: item.location,
+                quantity: item.quantity,
+                index: index
+            });
+            groupedPieces[pieceId].indices.push(index);
+        });
 
-            const pieceCell = document.createElement('td');
-            pieceCell.textContent = `${item.piece.code} - ${item.piece.name}`;
-            row.appendChild(pieceCell);
+        // Criar um item por peça agrupada
+        Object.values(groupedPieces).forEach(group => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'selected-piece-item';
 
-            const quantityCell = document.createElement('td');
-            quantityCell.textContent = item.quantity;
-            row.appendChild(quantityCell);
-
-            const locationCell = document.createElement('td');
-            const locationText = item.location ? `${item.location.code}${item.location.description ? ' - ' + item.location.description : ''}` : 'Local não definido';
-            locationCell.innerHTML = `
-                <span>${locationText}</span>
-                <button onclick="openLocationModal(${index})" class="btn-small" style="margin-left: 10px;" title="Editar local">
-                    ✏️
-                </button>
+            const pieceInfo = document.createElement('div');
+            pieceInfo.className = 'piece-info';
+            pieceInfo.innerHTML = `
+                <strong>${group.piece.code} - ${group.piece.name}</strong> | 
+                Quantidade: ${group.totalQuantity}
             `;
-            row.appendChild(locationCell);
+            itemDiv.appendChild(pieceInfo);
 
-            const actionsCell = document.createElement('td');
+            const locationsInfo = document.createElement('div');
+            locationsInfo.className = 'locations-info';
+            const locationTexts = group.locations.map(loc => {
+                const locText = loc.location ? `${loc.location.code}${loc.location.description ? ' - ' + loc.location.description : ''}` : 'Local não definido';
+                return `${locText} (${loc.quantity})`;
+            });
+            locationsInfo.innerHTML = `Locais: ${locationTexts.join(', ')}`;
+            itemDiv.appendChild(locationsInfo);
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'piece-actions';
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn-small';
+            editBtn.textContent = 'Editar';
+            editBtn.onclick = () => openLocationModal(group.indices[0]);
+            actionsDiv.appendChild(editBtn);
+
             const removeBtn = document.createElement('button');
             removeBtn.className = 'btn-small btn-danger';
             removeBtn.textContent = 'Remover';
-            removeBtn.onclick = () => removePieceFromList(index);
-            actionsCell.appendChild(removeBtn);
-            row.appendChild(actionsCell);
+            removeBtn.onclick = () => {
+                // Remover todas as entradas desta peça
+                group.indices.sort((a, b) => b - a).forEach(idx => {
+                    selectedPieces.splice(idx, 1);
+                });
+                updateSelectedPiecesTable();
+                showMessage('Peça removida da lista!', 'info');
+            };
+            actionsDiv.appendChild(removeBtn);
+            itemDiv.appendChild(actionsDiv);
 
-            tbody.appendChild(row);
+            container.appendChild(itemDiv);
         });
     } else {
         table.style.display = 'none';
         noPiecesMsg.style.display = 'block';
         saveBtn.style.display = 'none';
+        const container = document.getElementById('selected-pieces-container');
+        if (container) container.innerHTML = '';
     }
 }
 
