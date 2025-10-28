@@ -463,9 +463,15 @@ button:disabled {
 
 /* Responsividade */
 @media (max-width: 768px) {
+    .container {
+        padding: 10px;
+        max-width: 100%;
+    }
+
     header .container {
         flex-direction: column;
         text-align: center;
+        padding: 10px;
     }
 
     nav ul {
@@ -483,51 +489,63 @@ button:disabled {
         flex-direction: column;
         text-align: center;
         gap: 10px;
+        margin-bottom: 20px;
     }
 
     .dashboard-header h1 {
         font-size: 1.5rem;
+        margin: 0;
     }
 
     .welcome-message {
         font-size: 1rem;
+        margin: 0;
     }
 
     .user-role {
         font-size: 0.9rem;
         color: #666;
         font-weight: 500;
+        margin: 0;
     }
 
     .form-container {
-        margin: 20px;
+        margin: 10px auto;
         padding: 20px;
-        max-width: none;
+        max-width: 95%;
+        width: auto;
     }
 
     .dashboard-grid {
         grid-template-columns: 1fr;
         gap: 15px;
+        padding: 0 10px;
     }
 
     .card {
         padding: 15px;
+        text-align: center;
     }
 
     .card h3 {
         font-size: 1.1rem;
+        margin: 0 0 10px 0;
     }
 
     .card p {
         font-size: 0.9rem;
+        margin: 0 0 15px 0;
+        line-height: 1.4;
     }
 
     .btn {
         display: block;
         width: 100%;
         text-align: center;
-        padding: 10px;
+        padding: 12px;
         margin-top: 10px;
+        font-size: 16px;
+        min-height: 44px;
     }
 }
 
@@ -776,10 +794,30 @@ button:disabled {
     .stock-control-grid {
         grid-template-columns: 1fr;
         gap: 15px;
+        padding: 0 10px;
     }
 
     .stock-card {
         padding: 20px;
+        text-align: center;
+    }
+
+    .stock-card h3 {
+        font-size: 1.1rem;
+        margin: 0 0 10px 0;
+    }
+
+    .stock-card p {
+        font-size: 0.9rem;
+        margin: 0 0 15px 0;
+        line-height: 1.4;
+    }
+
+    .stock-card .btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        min-height: 44px;
     }
 
     .location-item {
