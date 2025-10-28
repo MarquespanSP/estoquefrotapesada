@@ -104,13 +104,45 @@ async function searchPieces(query) {
     }
 }
 
-function selectPiece(piece) {
+async function selectPiece(piece) {
     selectedPiece = piece;
     document.getElementById('piece_search').value = `${piece.code} - ${piece.name}`;
     document.getElementById('piece_suggestions').style.display = 'none';
 
     // Mostrar informações de estoque da peça selecionada
-    showStockInfo(piece);
+    await showStockInfo(piece);
+
+    // Preencher local padrão se a peça tiver estoque
+    try {
+        const { data: movements, error } = await supabaseClient
+            .from('stock_movements')
+            .select('quantity, location_id, locations(id, code, description)')
+            .eq('piece_id', piece.id);
+
+        if (error) throw error;
+
+        const totalStock = movements.reduce((sum, m) => sum + m.quantity, 0);
+
+        if (totalStock > 0) {
+            // Buscar último local usado
+            const { data: lastMovement, error: lastError } = await supabaseClient
+                .from('stock_movements')
+                .select('location_id, locations(id, code, description)')
+                .eq('piece_id', piece.id)
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (!lastError && lastMovement && lastMovement.length > 0) {
+                document.getElementById('location').value = lastMovement[0].location_id;
+            }
+        } else {
+            // Se não tem estoque, deixar vazio
+            document.getElementById('location').value = '';
+        }
+    } catch (error) {
+        console.error('Erro ao buscar local padrão:', error);
+        document.getElementById('location').value = '';
+    }
 }
 
 // Função para mostrar informações de estoque da peça selecionada
