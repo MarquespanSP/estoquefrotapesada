@@ -66,6 +66,7 @@ async function loadMovements() {
             .from('stock_movements')
             .select(`
                 id,
+                code,
                 quantity,
                 movement_type,
                 created_by,
@@ -555,7 +556,7 @@ async function generateMovementPDF(movementId) {
         currentX = margin + 5;
         const piece = movement.pieces || {};
         const pieceData = [
-            movement.id.toString(), // Código da movimentação do banco de dados
+            movement.code || 'N/A', // Código da RM (stock_movements.code)
             piece.name || 'N/A',
             Math.abs(movement.quantity).toString()
         ];
