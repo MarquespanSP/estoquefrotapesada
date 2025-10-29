@@ -440,9 +440,9 @@ function updateSelectedPiecesTable() {
     const saveBtn = document.getElementById('save_all_movements_btn');
 
     if (selectedPieces.length > 0) {
-        table.style.display = 'none'; // Hide table
-        noPiecesMsg.style.display = 'none';
-        saveBtn.style.display = 'block';
+        if (table) table.style.display = 'none'; // Hide table if exists
+        if (noPiecesMsg) noPiecesMsg.style.display = 'none';
+        if (saveBtn) saveBtn.style.display = 'block';
 
         // Use a div container instead of table
         let container = document.getElementById('selected-pieces-container');
@@ -450,9 +450,15 @@ function updateSelectedPiecesTable() {
             container = document.createElement('div');
             container.id = 'selected-pieces-container';
             container.className = 'selected-pieces-list';
-            table.parentNode.insertBefore(container, table);
+            if (table && table.parentNode) {
+                table.parentNode.insertBefore(container, table);
+            } else {
+                // Fallback: append to a known parent
+                const section = document.querySelector('.selected-pieces-section');
+                if (section) section.appendChild(container);
+            }
         }
-        container.innerHTML = '';
+        if (container) container.innerHTML = '';
 
         // Agrupar peças por ID
         const groupedPieces = {};
@@ -483,7 +489,7 @@ function updateSelectedPiecesTable() {
             const pieceInfo = document.createElement('div');
             pieceInfo.className = 'piece-info';
             pieceInfo.innerHTML = `
-                <strong>${group.piece.code} - ${group.piece.name}</strong> | 
+                <strong>${group.piece.code} - ${group.piece.name}</strong> |
                 Quantidade: ${group.totalQuantity}
             `;
             itemDiv.appendChild(pieceInfo);
@@ -519,12 +525,12 @@ function updateSelectedPiecesTable() {
             actionsDiv.appendChild(removeBtn);
             itemDiv.appendChild(actionsDiv);
 
-            container.appendChild(itemDiv);
+            if (container) container.appendChild(itemDiv);
         });
     } else {
-        table.style.display = 'none';
-        noPiecesMsg.style.display = 'block';
-        saveBtn.style.display = 'none';
+        if (table) table.style.display = 'none';
+        if (noPiecesMsg) noPiecesMsg.style.display = 'block';
+        if (saveBtn) saveBtn.style.display = 'none';
         const container = document.getElementById('selected-pieces-container');
         if (container) container.innerHTML = '';
     }
