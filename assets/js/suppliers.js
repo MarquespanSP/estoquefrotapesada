@@ -3,6 +3,14 @@
 // Variável para controlar modo de edição
 let editingSupplierId = null;
 
+// Função para fechar o modal de edição
+function closeEditModal() {
+    document.getElementById('edit-supplier-modal').style.display = 'none';
+    document.getElementById('edit-supplier-form').reset();
+    document.getElementById('edit-message').style.display = 'none';
+    editingSupplierId = null;
+}
+
 // Carregar fornecedores quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
     loadSuppliers();
@@ -38,11 +46,25 @@ function setupFormValidation() {
     if (form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            if (editingSupplierId) {
-                updateSupplier();
-            } else {
-                registerSupplier();
-            }
+            registerSupplier();
+        });
+    }
+
+    // Configurar validação para o formulário de edição no modal
+    const editForm = document.getElementById('edit-supplier-form');
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveSupplier();
+        });
+    }
+
+    // Configurar capitalização para o campo de edição
+    const editSupplierNameInput = document.getElementById('edit_supplier_name');
+    if (editSupplierNameInput) {
+        editSupplierNameInput.addEventListener('input', function() {
+            // Capitalizar primeira letra de cada palavra
+            this.value = this.value.replace(/\b\w/g, l => l.toUpperCase());
         });
     }
 }
@@ -197,21 +219,18 @@ async function editSupplier(supplierId) {
 
         if (error) throw error;
 
-        // Preencher formulário
-        document.getElementById('supplier_name').value = supplier.name;
-        document.getElementById('supplier_contact').value = supplier.contact_info || '';
+        // Preencher formulário do modal
+        document.getElementById('edit_supplier_name').value = supplier.name;
+        document.getElementById('edit_supplier_contact').value = supplier.contact_info || '';
 
         // Definir modo de edição
         editingSupplierId = supplierId;
 
-        // Alterar texto do botão
-        const submitBtn = document.querySelector('#supplier-form button[type="submit"]');
-        submitBtn.textContent = 'Salvar';
+        // Mostrar modal
+        document.getElementById('edit-supplier-modal').style.display = 'block';
 
         // Focar no campo de nome
-        document.getElementById('supplier_name').focus();
-
-        showMessage('Modo de edição ativado. Faça as alterações e clique em Salvar.', 'info');
+        document.getElementById('edit_supplier_name').focus();
 
     } catch (error) {
         console.error('Erro ao carregar fornecedor para edição:', error);
@@ -219,10 +238,11 @@ async function editSupplier(supplierId) {
     }
 }
 
-async function updateSupplier() {
+// Função para salvar fornecedor (usada no modal de edição)
+async function saveSupplier() {
     try {
-        const supplierName = document.getElementById('supplier_name').value.trim();
-        const supplierContact = document.getElementById('supplier_contact').value.trim();
+        const supplierName = document.getElementById('edit_supplier_name').value.trim();
+        const supplierContact = document.getElementById('edit_supplier_contact').value.trim();
 
         // Validações
         if (!supplierName) {
@@ -259,15 +279,27 @@ async function updateSupplier() {
         }
 
         console.log('Fornecedor atualizado com sucesso:', updatedSupplier);
+
+        // Fechar modal e mostrar mensagem de sucesso
+        closeEditModal();
         showMessage('Fornecedor atualizado com sucesso!', 'success');
 
-        // Limpar formulário e recarregar lista
-        resetForm();
+        // Recarregar lista
         loadSuppliers();
 
     } catch (error) {
         console.error('Erro na atualização do fornecedor:', error.message);
-        showMessage('Erro na atualização: ' + error.message, 'error');
+        showEditMessage('Erro na atualização: ' + error.message, 'error');
+    }
+}
+
+// Função para mostrar mensagens no modal de edição
+function showEditMessage(message, type = 'info') {
+    const messageDiv = document.getElementById('edit-message');
+    if (messageDiv) {
+        messageDiv.textContent = message;
+        messageDiv.className = `message ${type}`;
+        messageDiv.style.display = 'block';
     }
 }
 
