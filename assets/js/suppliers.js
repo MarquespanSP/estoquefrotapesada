@@ -135,6 +135,10 @@ async function loadSuppliers() {
                     ${supplier.contact_info ? `<br><small>${supplier.contact_info.replace(/\n/g, '<br>')}</small>` : ''}
                     <br><small>Cadastrado em: ${new Date(supplier.created_at).toLocaleString('pt-BR')} por ${supplier.created_by}</small>
                 </div>
+                <div class="location-actions">
+                    <button class="btn btn-small" onclick="editSupplier(${supplier.id})">Editar</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteSupplier(${supplier.id}, '${supplier.name.replace(/'/g, "\\'")}')">Excluir</button>
+                </div>
             `;
             container.appendChild(supplierDiv);
         });
