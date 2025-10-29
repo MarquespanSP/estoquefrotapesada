@@ -466,6 +466,7 @@ button:disabled {
     .container {
         padding: 10px;
         max-width: 100%;
+        box-sizing: border-box;
     }
 
     header .container {
@@ -514,6 +515,8 @@ button:disabled {
         padding: 20px;
         max-width: 95%;
         width: auto;
+        box-sizing: border-box;
+        overflow-x: hidden;
     }
 
     .dashboard-grid {
