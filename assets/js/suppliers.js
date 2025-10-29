@@ -140,29 +140,68 @@ async function loadSuppliers() {
 
         if (error) throw error;
 
-        const container = document.getElementById('suppliers-container');
-        container.innerHTML = '';
+        const tbody = document.getElementById('suppliers-tbody');
+        tbody.innerHTML = '';
 
         if (suppliers.length === 0) {
-            container.innerHTML = '<p>Nenhum fornecedor cadastrado ainda.</p>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #666; font-style: italic;">Nenhum fornecedor cadastrado ainda.</td></tr>';
             return;
         }
 
         suppliers.forEach(supplier => {
-            const supplierDiv = document.createElement('div');
-            supplierDiv.className = 'location-item';
-            supplierDiv.innerHTML = `
-                <div class="location-info">
-                    <strong>${supplier.name}</strong>
-                    ${supplier.contact_info ? `<br><small>${supplier.contact_info.replace(/\n/g, '<br>')}</small>` : ''}
-                    <br><small>Cadastrado em: ${new Date(supplier.created_at).toLocaleString('pt-BR')} por ${supplier.created_by}</small>
-                </div>
-                <div class="location-actions">
-                    <button class="btn btn-small" onclick="editSupplier(${supplier.id})">Editar</button>
-                    <button class="btn btn-small btn-danger" onclick="deleteSupplier(${supplier.id}, ${JSON.stringify(supplier.name)})">Excluir</button>
-                </div>
-            `;
-            container.appendChild(supplierDiv);
+            const row = document.createElement('tr');
+
+            // Nome do fornecedor (editável)
+            const nameCell = document.createElement('td');
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.value = supplier.name;
+            nameInput.className = 'editable-field';
+            nameInput.dataset.supplierId = supplier.id;
+            nameInput.dataset.field = 'name';
+            nameInput.addEventListener('blur', updateSupplierField);
+            nameInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    this.blur();
+                }
+            });
+            nameCell.appendChild(nameInput);
+            row.appendChild(nameCell);
+
+            // Informações de contato (editável)
+            const contactCell = document.createElement('td');
+            const contactTextarea = document.createElement('textarea');
+            contactTextarea.value = supplier.contact_info || '';
+            contactTextarea.className = 'editable-field';
+            contactTextarea.rows = 2;
+            contactTextarea.dataset.supplierId = supplier.id;
+            contactTextarea.dataset.field = 'contact_info';
+            contactTextarea.addEventListener('blur', updateSupplierField);
+            contactTextarea.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.blur();
+                }
+            });
+            contactCell.appendChild(contactTextarea);
+            row.appendChild(contactCell);
+
+            // Data de cadastro
+            const dateCell = document.createElement('td');
+            dateCell.textContent = new Date(supplier.created_at).toLocaleString('pt-BR');
+            dateCell.innerHTML += `<br><small>por ${supplier.created_by}</small>`;
+            row.appendChild(dateCell);
+
+            // Ações
+            const actionsCell = document.createElement('td');
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-small btn-danger';
+            deleteBtn.textContent = 'Excluir';
+            deleteBtn.onclick = () => deleteSupplier(supplier.id, supplier.name);
+            actionsCell.appendChild(deleteBtn);
+            row.appendChild(actionsCell);
+
+            tbody.appendChild(row);
         });
     } catch (error) {
         console.error('Erro ao carregar fornecedores:', error);
@@ -310,4 +349,75 @@ function resetForm() {
     // Voltar texto do botão
     const submitBtn = document.querySelector('#supplier-form button[type="submit"]');
     submitBtn.textContent = 'Cadastrar Fornecedor';
+}
+
+// Função para atualizar campo específico do fornecedor
+async function updateSupplierField(event) {
+    const input = event.target;
+    const supplierId = parseInt(input.dataset.supplierId);
+    const field = input.dataset.field;
+    const newValue = input.value.trim();
+
+    // Validações básicas
+    if (field === 'name' && !newValue) {
+        showMessage('Nome do fornecedor não pode estar vazio.', 'error');
+        // Reverter valor
+        const { data: supplier } = await supabaseClient
+            .from('suppliers')
+            .select(field)
+            .eq('id', supplierId)
+            .single();
+        input.value = supplier[field];
+        return;
+    }
+
+    try {
+        // Verificar duplicatas para nome
+        if (field === 'name') {
+            const { data: existingSuppliers, error: checkError } = await supabaseClient
+                .from('suppliers')
+                .select('id, name')
+                .eq('name', newValue)
+                .neq('id', supplierId)
+                .limit(1);
+
+            if (checkError) throw checkError;
+
+            if (existingSuppliers && existingSuppliers.length > 0) {
+                throw new Error('Este nome de fornecedor já está sendo usado por outro fornecedor');
+            }
+        }
+
+        // Atualizar campo específico
+        const updateData = {};
+        updateData[field] = field === 'contact_info' ? (newValue || null) : newValue;
+
+        const { error: updateError } = await supabaseClient
+            .from('suppliers')
+            .update(updateData)
+            .eq('id', supplierId);
+
+        if (updateError) {
+            throw new Error('Erro ao atualizar fornecedor: ' + updateError.message);
+        }
+
+        console.log(`Campo ${field} atualizado com sucesso para fornecedor ${supplierId}`);
+        showMessage('Fornecedor atualizado com sucesso!', 'success');
+
+    } catch (error) {
+        console.error('Erro na atualização do fornecedor:', error.message);
+        showMessage('Erro na atualização: ' + error.message, 'error');
+
+        // Reverter valor em caso de erro
+        try {
+            const { data: supplier } = await supabaseClient
+                .from('suppliers')
+                .select(field)
+                .eq('id', supplierId)
+                .single();
+            input.value = supplier[field] || '';
+        } catch (revertError) {
+            console.error('Erro ao reverter valor:', revertError);
+        }
+    }
 }
