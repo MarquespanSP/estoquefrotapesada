@@ -69,6 +69,12 @@ function applySupervisorPermissions() {
 function applyDiretoriaPermissions() {
     // Diretoria vê todos os cards exceto Usuários
     applySupervisorPermissions();
+
+    // Mostrar card de Fornecedores para Diretoria
+    const suppliersCard = document.querySelector('.dashboard-grid .card:nth-child(4)');
+    if (suppliersCard) {
+        suppliersCard.style.display = 'block';
+    }
 }
 
 // Função para permissões de Administrador
