@@ -137,7 +137,7 @@ async function loadSuppliers() {
                 </div>
                 <div class="location-actions">
                     <button class="btn btn-small" onclick="editSupplier(${supplier.id})">Editar</button>
-                    <button class="btn btn-small btn-danger" onclick="deleteSupplier(${supplier.id}, '${supplier.name.replace(/'/g, "\\'")}')">Excluir</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteSupplier(${supplier.id}, ${JSON.stringify(supplier.name)})">Excluir</button>
                 </div>
             `;
             container.appendChild(supplierDiv);
