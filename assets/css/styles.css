@@ -1391,3 +1391,24 @@ button:disabled {
     border: 1px solid #ddd;
     border-radius: 4px;
 }
+
+/* Estilos para histórico de batimentos */
+.batimento-history {
+    margin-top: 30px;
+}
+
+#batimento-history-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f8f9fa;
+}
+
+/* Responsividade para histórico */
+@media (max-width: 768px) {
+    #batimento-history-container {
+        max-height: 300px;
+    }
+}
