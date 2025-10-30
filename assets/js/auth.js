@@ -1,6 +1,6 @@
 // Script JavaScript para autenticação com Supabase
 // Importar cliente Supabase centralizado
-// const supabaseClient = window.supabaseClient; // Será definido pelo supabase_client.js
+const supabaseClient = window.supabaseClient; // Definido pelo supabase_client.js
 
 // Função para fazer login (usando username e password diretamente no banco)
 async function loginUser(username, password) {

@@ -35,37 +35,37 @@
                 <div class="stock-card">
                     <h3>📝 Cadastro de Peças</h3>
                     <p>Cadastrar novas peças no sistema com código, nome e fornecedor.</p>
-                    <a href="piece_registration.html" class="btn">Cadastrar Peça</a>
+                    <a href="piece_registration.html" class="btn" onclick="checkLoginBeforeNavigate('piece_registration.html'); return false;">Cadastrar Peça</a>
                 </div>
                 <div class="stock-card">
                     <h3>📦 Movimentação de Estoque</h3>
                     <p>Registrar entradas e saídas de peças no estoque.</p>
-                    <a href="stock_movement.html" class="btn">Registrar Movimentação</a>
+                    <a href="stock_movement.html" class="btn" onclick="checkLoginBeforeNavigate('stock_movement.html'); return false;">Registrar Movimentação</a>
                 </div>
                     <div class="stock-card">
                     <h3>⚖️ Realizar Batimento</h3>
                     <p>Realizar contagem de estoque / Acerto de quantidade de Peças.</p>
-                    <a href="stock_batimento.html" class="btn">Realizar Batimento</a>
+                    <a href="stock_batimento.html" class="btn" onclick="checkLoginBeforeNavigate('stock_batimento.html'); return false;">Realizar Batimento</a>
                 </div>
                 <div class="stock-card">
                     <h3>🏢 Gerenciamento de Locais</h3>
                     <p>Criar e gerenciar locais de armazenamento no estoque.</p>
-                    <a href="location_management.html" class="btn">Gerenciar Locais</a>
+                    <a href="location_management.html" class="btn" onclick="checkLoginBeforeNavigate('location_management.html'); return false;">Gerenciar Locais</a>
                 </div>
                 <div class="stock-card">
                     <h3>🔍 Localizar Peça</h3>
                     <p>Buscar peças no estoque por código ou nome.</p>
-                    <a href="piece_search.html" class="btn">Buscar Peça</a>
+                    <a href="piece_search.html" class="btn" onclick="checkLoginBeforeNavigate('piece_search.html'); return false;">Buscar Peça</a>
                 </div>
                 <div class="stock-card">
                     <h3>📊 Relatório de Movimentações</h3>
                     <p>Visualizar histórico completo de movimentações do estoque.</p>
-                    <a href="stock_report.html" class="btn">Ver Relatório</a>
+                    <a href="stock_report.html" class="btn" onclick="checkLoginBeforeNavigate('stock_report.html'); return false;">Ver Relatório</a>
                 </div>
                 <div class="stock-card">
                     <h3>🗑️ Exclusão de Lançamentos</h3>
                     <p>Excluir movimentações, peças ou locais do sistema.</p>
-                    <a href="delete_records.html" class="btn btn-danger">Excluir Lançamentos</a>
+                    <a href="delete_records.html" class="btn btn-danger" onclick="checkLoginBeforeNavigate('delete_records.html'); return false;">Excluir Lançamentos</a>
                 </div>
             </div>
         </div>
@@ -73,6 +73,8 @@
 
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Script do cliente Supabase -->
+    <script src="assets/js/supabase_client.js"></script>
     <!-- Script de autenticação -->
     <script src="assets/js/auth.js"></script>
     <!-- Script de controle de permissões -->
