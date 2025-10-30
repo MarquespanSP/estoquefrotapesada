@@ -192,51 +192,61 @@ async function editVehicleDetails(vehicleId) {
 
         const detailsContent = document.getElementById('vehicle-details-content');
         detailsContent.innerHTML = `
-            <form id="edit-vehicle-form">
-                <div class="form-group">
-                    <label for="edit_filial">Filial:</label>
-                    <input type="text" id="edit_filial" name="filial" value="${vehicle.filial}" required>
+            <form id="edit-vehicle-form" class="edit-vehicle-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit_filial">Filial:</label>
+                        <input type="text" id="edit_filial" name="filial" value="${vehicle.filial}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_placa">Placa:</label>
+                        <input type="text" id="edit_placa" name="placa" value="${vehicle.placa}" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="edit_placa">Placa:</label>
-                    <input type="text" id="edit_placa" name="placa" value="${vehicle.placa}" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit_chassi">Chassi:</label>
+                        <input type="text" id="edit_chassi" name="chassi" value="${vehicle.chassi}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_marca">Marca:</label>
+                        <input type="text" id="edit_marca" name="marca" value="${vehicle.marca}" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="edit_chassi">Chassi:</label>
-                    <input type="text" id="edit_chassi" name="chassi" value="${vehicle.chassi}" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit_modelo">Modelo:</label>
+                        <input type="text" id="edit_modelo" name="modelo" value="${vehicle.modelo}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_frota">Frota:</label>
+                        <input type="text" id="edit_frota" name="frota" value="${vehicle.frota}" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="edit_marca">Marca:</label>
-                    <input type="text" id="edit_marca" name="marca" value="${vehicle.marca}" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit_grupo">Grupo:</label>
+                        <input type="text" id="edit_grupo" name="grupo" value="${vehicle.grupo}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_ano_fabricacao">Ano de Fabricação:</label>
+                        <input type="number" id="edit_ano_fabricacao" name="ano_fabricacao" value="${vehicle.ano_fabricacao}" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="edit_modelo">Modelo:</label>
-                    <input type="text" id="edit_modelo" name="modelo" value="${vehicle.modelo}" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit_frota">Frota:</label>
-                    <input type="text" id="edit_frota" name="frota" value="${vehicle.frota}" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit_grupo">Grupo:</label>
-                    <input type="text" id="edit_grupo" name="grupo" value="${vehicle.grupo}" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit_ano_fabricacao">Ano de Fabricação:</label>
-                    <input type="number" id="edit_ano_fabricacao" name="ano_fabricacao" value="${vehicle.ano_fabricacao}" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit_status">Status:</label>
-                    <select id="edit_status" name="status" required>
-                        <option value="Ativo" ${vehicle.status === 'Ativo' ? 'selected' : ''}>Ativo</option>
-                        <option value="Inativo" ${vehicle.status === 'Inativo' ? 'selected' : ''}>Inativo</option>
-                        <option value="Manutenção" ${vehicle.status === 'Manutenção' ? 'selected' : ''}>Manutenção</option>
-                        <option value="Vendido" ${vehicle.status === 'Vendido' ? 'selected' : ''}>Vendido</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="edit_qrcode">QR Code:</label>
-                    <input type="text" id="edit_qrcode" name="qrcode" value="${vehicle.qrcode || ''}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit_status">Status:</label>
+                        <select id="edit_status" name="status" required>
+                            <option value="Ativo" ${vehicle.status === 'Ativo' ? 'selected' : ''}>Ativo</option>
+                            <option value="Inativo" ${vehicle.status === 'Inativo' ? 'selected' : ''}>Inativo</option>
+                            <option value="Manutenção" ${vehicle.status === 'Manutenção' ? 'selected' : ''}>Manutenção</option>
+                            <option value="Vendido" ${vehicle.status === 'Vendido' ? 'selected' : ''}>Vendido</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_qrcode">QR Code:</label>
+                        <input type="text" id="edit_qrcode" name="qrcode" value="${vehicle.qrcode || ''}">
+                    </div>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="viewVehicleDetails(${vehicle.id})">Cancelar</button>
@@ -244,6 +254,84 @@ async function editVehicleDetails(vehicleId) {
                 </div>
             </form>
         `;
+
+        // Adicionar estilos CSS para o formulário de edição
+        const style = document.createElement('style');
+        style.textContent = `
+            .edit-vehicle-form {
+                max-width: 100%;
+                padding: 10px;
+            }
+            .edit-vehicle-form .form-row {
+                display: flex;
+                gap: 15px;
+                margin-bottom: 15px;
+            }
+            .edit-vehicle-form .form-group {
+                flex: 1;
+                min-width: 0;
+            }
+            .edit-vehicle-form .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+                font-size: 12px;
+                color: #2c3e50;
+            }
+            .edit-vehicle-form .form-group input,
+            .edit-vehicle-form .form-group select {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 14px;
+                box-sizing: border-box;
+            }
+            .edit-vehicle-form .form-group input:focus,
+            .edit-vehicle-form .form-group select:focus {
+                outline: none;
+                border-color: #3498db;
+                box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+            }
+            .edit-vehicle-form .modal-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+                margin-top: 20px;
+                padding-top: 15px;
+                border-top: 1px solid #eee;
+            }
+            .edit-vehicle-form .btn {
+                padding: 8px 16px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: bold;
+                min-width: 80px;
+            }
+            .edit-vehicle-form .btn-primary {
+                background-color: #3498db;
+                color: white;
+            }
+            .edit-vehicle-form .btn-primary:hover {
+                background-color: #2980b9;
+            }
+            .edit-vehicle-form .btn-secondary {
+                background-color: #95a5a6;
+                color: white;
+            }
+            .edit-vehicle-form .btn-secondary:hover {
+                background-color: #7f8c8d;
+            }
+            /* Ajustar modal para edição */
+            #vehicle-details-modal .modal-content {
+                max-width: 700px;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+        `;
+        document.head.appendChild(style);
 
         // Adicionar event listener para o formulário de edição
         document.getElementById('edit-vehicle-form').addEventListener('submit', async function(e) {
