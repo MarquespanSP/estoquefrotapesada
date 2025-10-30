@@ -163,39 +163,14 @@ async function loadSuppliers() {
         suppliers.forEach(supplier => {
             const row = document.createElement('tr');
 
-            // Nome do fornecedor (editável)
+            // Nome do fornecedor
             const nameCell = document.createElement('td');
-            const nameInput = document.createElement('input');
-            nameInput.type = 'text';
-            nameInput.value = supplier.name;
-            nameInput.className = 'editable-field';
-            nameInput.dataset.supplierId = supplier.id;
-            nameInput.dataset.field = 'name';
-            nameInput.addEventListener('blur', updateSupplierField);
-            nameInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    this.blur();
-                }
-            });
-            nameCell.appendChild(nameInput);
+            nameCell.textContent = supplier.name;
             row.appendChild(nameCell);
 
-            // Informações de contato (editável)
+            // Informações de contato
             const contactCell = document.createElement('td');
-            const contactTextarea = document.createElement('textarea');
-            contactTextarea.value = supplier.contact_info || '';
-            contactTextarea.className = 'editable-field';
-            contactTextarea.rows = 2;
-            contactTextarea.dataset.supplierId = supplier.id;
-            contactTextarea.dataset.field = 'contact_info';
-            contactTextarea.addEventListener('blur', updateSupplierField);
-            contactTextarea.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    this.blur();
-                }
-            });
-            contactCell.appendChild(contactTextarea);
+            contactCell.textContent = supplier.contact_info || 'Não informado';
             row.appendChild(contactCell);
 
             // Data de cadastro
@@ -463,73 +438,4 @@ function resetForm() {
     submitBtn.textContent = 'Cadastrar Fornecedor';
 }
 
-// Função para atualizar campo específico do fornecedor
-async function updateSupplierField(event) {
-    const input = event.target;
-    const supplierId = parseInt(input.dataset.supplierId);
-    const field = input.dataset.field;
-    const newValue = input.value.trim();
 
-    // Validações básicas
-    if (field === 'name' && !newValue) {
-        showMessage('Nome do fornecedor não pode estar vazio.', 'error');
-        // Reverter valor
-        const { data: supplier } = await supabaseClient
-            .from('suppliers')
-            .select(field)
-            .eq('id', supplierId)
-            .single();
-        input.value = supplier[field];
-        return;
-    }
-
-    try {
-        // Verificar duplicatas para nome
-        if (field === 'name') {
-            const { data: existingSuppliers, error: checkError } = await supabaseClient
-                .from('suppliers')
-                .select('id, name')
-                .eq('name', newValue)
-                .neq('id', supplierId)
-                .limit(1);
-
-            if (checkError) throw checkError;
-
-            if (existingSuppliers && existingSuppliers.length > 0) {
-                throw new Error('Este nome de fornecedor já está sendo usado por outro fornecedor');
-            }
-        }
-
-        // Atualizar campo específico
-        const updateData = {};
-        updateData[field] = field === 'contact_info' ? (newValue || null) : newValue;
-
-        const { error: updateError } = await supabaseClient
-            .from('suppliers')
-            .update(updateData)
-            .eq('id', supplierId);
-
-        if (updateError) {
-            throw new Error('Erro ao atualizar fornecedor: ' + updateError.message);
-        }
-
-        console.log(`Campo ${field} atualizado com sucesso para fornecedor ${supplierId}`);
-        showMessage('Fornecedor atualizado com sucesso!', 'success');
-
-    } catch (error) {
-        console.error('Erro na atualização do fornecedor:', error.message);
-        showMessage('Erro na atualização: ' + error.message, 'error');
-
-        // Reverter valor em caso de erro
-        try {
-            const { data: supplier } = await supabaseClient
-                .from('suppliers')
-                .select(field)
-                .eq('id', supplierId)
-                .single();
-            input.value = supplier[field] || '';
-        } catch (revertError) {
-            console.error('Erro ao reverter valor:', revertError);
-        }
-    }
-}
