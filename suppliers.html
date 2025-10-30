@@ -40,7 +40,11 @@
                     <label for="supplier_contact">Informações de Contato:</label>
                     <textarea id="supplier_contact" name="supplier_contact" rows="4" placeholder="Telefone, email, endereço, etc." autocomplete="off"></textarea>
                 </div>
-                <button type="submit">Cadastrar Fornecedor</button>
+                <div class="form-actions">
+                    <button type="button" id="import-btn" class="btn-secondary">Importar XLSX</button>
+                    <button type="button" id="export-btn" class="btn-secondary">Exportar XLSX</button>
+                    <button type="submit">Cadastrar Fornecedor</button>
+                </div>
             </form>
             <div id="message" class="message" style="display: none;"></div>
 
@@ -102,8 +106,51 @@
         </div>
     </div>
 
+    <!-- Modal de progresso da importação -->
+    <div id="import-progress-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Importando Fornecedores</h3>
+            </div>
+            <div class="modal-body">
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span id="progress-text">Preparando importação...</span>
+                        <span id="progress-count">0 / 0</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="import-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Sucesso:</span>
+                        <span id="success-count" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Duplicatas:</span>
+                        <span id="duplicate-count" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Erros:</span>
+                        <span id="error-count" class="stat-value">0</span>
+                    </div>
+                </div>
+                <div id="import-errors" class="import-errors" style="display: none;">
+                    <h4>Erros encontrados:</h4>
+                    <ul id="error-list"></ul>
+                </div>
+                <div class="modal-actions">
+                    <button id="cancel-import-btn" class="btn btn-danger">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SheetJS para manipulação de XLSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Script do cliente Supabase -->
     <script src="assets/js/supabase_client.js"></script>
     <!-- Script de autenticação -->

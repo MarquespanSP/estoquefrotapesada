@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     loadSuppliers();
     setupFormValidation();
     loadUserInfo();
+    setupImportExport();
 });
 
 // Verificar autenticação (igual ao fleet.js)
@@ -495,6 +496,306 @@ function resetForm() {
     // Voltar texto do botão
     const submitBtn = document.querySelector('#supplier-form button[type="submit"]');
     submitBtn.textContent = 'Cadastrar Fornecedor';
+}
+
+// Função para configurar importação e exportação XLSX
+function setupImportExport() {
+    const importBtn = document.getElementById('import-btn');
+    const exportBtn = document.getElementById('export-btn');
+
+    if (importBtn) {
+        importBtn.addEventListener('click', handleImport);
+    }
+
+    if (exportBtn) {
+        exportBtn.addEventListener('click', handleExport);
+    }
+}
+
+// Variável para controlar cancelamento da importação
+let importCancelled = false;
+
+// Função para lidar com a importação de fornecedores via XLSX
+async function handleImport() {
+    try {
+        // Criar input file oculto
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.xlsx,.xls';
+        input.style.display = 'none';
+
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // Assumir que os dados estão na primeira planilha
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+
+                // Converter para JSON
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                if (jsonData.length < 2) {
+                    throw new Error('Arquivo deve conter pelo menos cabeçalhos e uma linha de dados');
+                }
+
+                // Processar dados
+                const headers = jsonData[0].map(h => h.toLowerCase().trim());
+                const requiredHeaders = ['nome', 'contato'];
+
+                // Verificar se os cabeçalhos necessários estão presentes
+                const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+                if (missingHeaders.length > 0) {
+                    throw new Error(`Cabeçalhos obrigatórios ausentes: ${missingHeaders.join(', ')}`);
+                }
+
+                // Obter índices das colunas
+                const nameIndex = headers.indexOf('nome');
+                const contactIndex = headers.indexOf('contato');
+
+                // Processar linhas de dados
+                const suppliersToImport = [];
+                let errorCount = 0;
+                const errors = [];
+
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    const supplierName = row[nameIndex]?.toString().trim();
+                    const supplierContact = row[contactIndex]?.toString().trim();
+
+                    if (!supplierName) {
+                        errorCount++;
+                        errors.push(`Linha ${i + 1}: Nome do fornecedor é obrigatório`);
+                        continue;
+                    }
+
+                    suppliersToImport.push({
+                        name: supplierName,
+                        contact_info: supplierContact || null
+                    });
+                }
+
+                if (suppliersToImport.length === 0) {
+                    throw new Error('Nenhum fornecedor válido encontrado para importar');
+                }
+
+                // Iniciar importação com modal de progresso
+                await performImportWithProgress(suppliersToImport, errors);
+
+            } catch (error) {
+                console.error('Erro na importação:', error);
+                showMessage('Erro na importação: ' + error.message, 'error');
+            }
+        };
+
+        // Simular clique no input
+        document.body.appendChild(input);
+        input.click();
+        document.body.removeChild(input);
+
+    } catch (error) {
+        console.error('Erro ao configurar importação:', error);
+        showMessage('Erro ao configurar importação.', 'error');
+    }
+}
+
+// Função para executar a importação com modal de progresso
+async function performImportWithProgress(suppliersToImport, initialErrors) {
+    importCancelled = false;
+
+    // Mostrar modal de progresso
+    const modal = document.getElementById('import-progress-modal');
+    modal.style.display = 'block';
+
+    // Inicializar contadores
+    let successCount = 0;
+    let duplicateCount = 0;
+    let errorCount = initialErrors.length;
+    const errors = [...initialErrors];
+
+    // Configurar elementos do modal
+    const progressText = document.getElementById('progress-text');
+    const progressCount = document.getElementById('progress-count');
+    const progressFill = document.getElementById('progress-fill');
+    const successCountEl = document.getElementById('success-count');
+    const duplicateCountEl = document.getElementById('duplicate-count');
+    const errorCountEl = document.getElementById('error-count');
+    const errorList = document.getElementById('error-list');
+    const importErrors = document.getElementById('import-errors');
+    const cancelBtn = document.getElementById('cancel-import-btn');
+
+    // Configurar botão de cancelar
+    cancelBtn.onclick = () => {
+        importCancelled = true;
+        modal.style.display = 'none';
+        showMessage('Importação cancelada pelo usuário.', 'warning');
+    };
+
+    try {
+        // Verificar duplicatas existentes
+        progressText.textContent = 'Verificando duplicatas existentes...';
+        const supplierNames = suppliersToImport.map(s => s.name);
+        const { data: existingSuppliers, error: checkError } = await supabaseClient
+            .from('suppliers')
+            .select('name')
+            .in('name', supplierNames)
+            .eq('is_active', true);
+
+        if (checkError) {
+            throw new Error('Erro ao verificar fornecedores existentes: ' + checkError.message);
+        }
+
+        const existingNames = new Set(existingSuppliers.map(s => s.name));
+        const uniqueSuppliers = suppliersToImport.filter(supplier => {
+            if (existingNames.has(supplier.name)) {
+                duplicateCount++;
+                return false;
+            }
+            return true;
+        });
+
+        if (uniqueSuppliers.length === 0) {
+            throw new Error('Todos os fornecedores do arquivo já existem no sistema');
+        }
+
+        // Obter usuário logado
+        const userSession = await getLoggedUser();
+        if (!userSession) {
+            throw new Error('Usuário não autenticado');
+        }
+
+        // Preparar fornecedores para inserção
+        const suppliersWithAudit = uniqueSuppliers.map(supplier => ({
+            ...supplier,
+            created_by: userSession.username,
+            created_at: new Date().toISOString(),
+            is_active: true
+        }));
+
+        // Processar inserção em lotes
+        const batchSize = 10; // Processar em lotes de 10
+        const totalBatches = Math.ceil(suppliersWithAudit.length / batchSize);
+
+        for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+            if (importCancelled) break;
+
+            const start = batchIndex * batchSize;
+            const end = Math.min(start + batchSize, suppliersWithAudit.length);
+            const batch = suppliersWithAudit.slice(start, end);
+
+            // Atualizar progresso
+            const currentProgress = Math.round(((batchIndex + 1) / totalBatches) * 100);
+            progressText.textContent = `Importando fornecedores... (${batchIndex + 1}/${totalBatches})`;
+            progressCount.textContent = `${Math.min(end, suppliersWithAudit.length)} / ${suppliersWithAudit.length}`;
+            progressFill.style.width = `${currentProgress}%`;
+
+            // Inserir lote
+            const { data: insertedBatch, error: insertError } = await supabaseClient
+                .from('suppliers')
+                .insert(batch)
+                .select();
+
+            if (insertError) {
+                errorCount++;
+                errors.push(`Erro no lote ${batchIndex + 1}: ${insertError.message}`);
+            } else {
+                successCount += insertedBatch.length;
+            }
+
+            // Atualizar estatísticas
+            successCountEl.textContent = successCount;
+            duplicateCountEl.textContent = duplicateCount;
+            errorCountEl.textContent = errorCount;
+
+            // Pequena pausa para não sobrecarregar
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        if (!importCancelled) {
+            // Finalizar
+            progressText.textContent = 'Importação concluída!';
+            progressCount.textContent = `${suppliersWithAudit.length} / ${suppliersWithAudit.length}`;
+            progressFill.style.width = '100%';
+
+            // Mostrar erros se houver
+            if (errors.length > 0) {
+                errorList.innerHTML = errors.map(error => `<li>${error}</li>`).join('');
+                importErrors.style.display = 'block';
+            }
+
+            // Fechar modal automaticamente após 3 segundos se não houver erros
+            if (errors.length === 0) {
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    showMessage(`Importação concluída! ${successCount} fornecedores importados com sucesso. ${duplicateCount} duplicatas ignoradas.`, 'success');
+                    loadSuppliers();
+                }, 3000);
+            } else {
+                // Se houver erros, manter modal aberto para usuário ver
+                cancelBtn.textContent = 'Fechar';
+                cancelBtn.onclick = () => {
+                    modal.style.display = 'none';
+                    showMessage(`Importação concluída com erros! ${successCount} fornecedores importados. ${duplicateCount} duplicatas ignoradas. ${errorCount} erros encontrados.`, 'warning');
+                    loadSuppliers();
+                };
+            }
+        }
+
+    } catch (error) {
+        console.error('Erro na importação:', error);
+        modal.style.display = 'none';
+        showMessage('Erro na importação: ' + error.message, 'error');
+    }
+}
+
+// Função para lidar com a exportação de fornecedores para XLSX
+async function handleExport() {
+    try {
+        // Buscar todos os fornecedores ativos
+        const { data: suppliers, error } = await supabaseClient
+            .from('suppliers')
+            .select('name, contact_info, created_at, created_by')
+            .eq('is_active', true)
+            .order('name');
+
+        if (error) throw error;
+
+        if (suppliers.length === 0) {
+            showMessage('Nenhum fornecedor encontrado para exportar.', 'error');
+            return;
+        }
+
+        // Preparar dados para exportação
+        const exportData = suppliers.map(supplier => ({
+            'Nome': supplier.name,
+            'Contato': supplier.contact_info || '',
+            'Cadastrado em': new Date(supplier.created_at).toLocaleString('pt-BR'),
+            'Cadastrado por': supplier.created_by
+        }));
+
+        // Criar workbook
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Fornecedores');
+
+        // Gerar nome do arquivo com data
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+        const fileName = `fornecedores_${dateStr}.xlsx`;
+
+        // Salvar arquivo
+        XLSX.writeFile(workbook, fileName);
+
+        showMessage(`Arquivo ${fileName} exportado com sucesso!`, 'success');
+
+    } catch (error) {
+        console.error('Erro na exportação:', error);
+        showMessage('Erro na exportação: ' + error.message, 'error');
+    }
 }
 
 
