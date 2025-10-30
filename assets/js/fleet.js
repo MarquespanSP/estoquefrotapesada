@@ -277,10 +277,10 @@ async function importFromXLSX(file) {
                         chassi: row['Chassi'] || row['chassi'] || row['CHASSI'],
                         marca: row['Marca'] || row['marca'] || row['MARCA'],
                         modelo: row['Modelo'] || row['modelo'] || row['MODELO'],
-                        frota: row['Frota'] || row['frota'] || row['FROTA'],
-                        grupo: row['Grupo'] || row['grupo'] || row['GRUPO'],
-                        ano_fabricacao: parseInt(row['Ano de Fabricação'] || row['ano_fabricacao'] || row['Ano de Fabricacao'] || row['ANO DE FABRICAÇÃO'] || row['ANO_FABRICACAO']),
-                        status: row['Status'] || row['status'] || row['STATUS'],
+                        frota: row['Frota'] || row['frota'] || row['FROTA'] || 'Frota Padrão',
+                        grupo: row['Grupo'] || row['grupo'] || row['GRUPO'] || 'Grupo Padrão',
+                        ano_fabricacao: parseInt(row['Ano de Fabricação'] || row['ano_fabricacao'] || row['Ano de Fabricacao'] || row['ANO DE FABRICAÇÃO'] || row['ANO_FABRICACAO'] || 2020),
+                        status: row['Status'] || row['status'] || row['STATUS'] || 'Ativo',
                         qrcode: row['QR Code'] || row['qrcode'] || row['QRCode'] || row['QR CODE'] || row['QRCODE'] || '',
                         updated_at: new Date().toISOString()
                     };
