@@ -1,12 +1,6 @@
 // Script JavaScript para autenticação com Supabase
-// Substitua 'YOUR_SUPABASE_URL' e 'YOUR_SUPABASE_ANON_KEY' pelas suas credenciais do Supabase
-
-const SUPABASE_URL = 'https://iutwaspoegvbebaemghy.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dHdhc3BvZWd2YmViYWVtZ2h5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzMDg0MzIsImV4cCI6MjA3Njg4NDQzMn0.orZgrWLHhps1wpKbeP_fKLeF0Xjog-ECYdIkxC_LcCc';
-
-// Inicializar Supabase
-const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Importar cliente Supabase centralizado
+// const supabaseClient = window.supabaseClient; // Será definido pelo supabase_client.js
 
 // Função para fazer login (usando username e password diretamente no banco)
 async function loginUser(username, password) {

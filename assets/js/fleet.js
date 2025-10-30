@@ -1,13 +1,9 @@
 // Script para controle de frota
-let supabase;
 let currentUser = null;
 
-// Inicialização do Supabase
+// Inicialização do Supabase (usando cliente centralizado)
 async function initSupabase() {
-    const SUPABASE_URL = 'https://iutwaspoegvbebaemghy.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dHdhc3BvZWd2YmViYWVtZ2h5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzMDg0MzIsImV4cCI6MjA3Njg4NDQzMn0.orZgrWLHhps1wpKbeP_fKLeF0Xjog-ECYdIkxC_LcCc';
-
-    supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Cliente já inicializado em supabase_client.js
 }
 
 // Verificar autenticação
@@ -64,7 +60,7 @@ document.getElementById('vehicle-form').addEventListener('submit', async functio
     };
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('vehicles')
             .insert([vehicleData]);
 
@@ -95,7 +91,7 @@ document.getElementById('search-vehicle-form').addEventListener('submit', async 
     if (formData.get('search_qrcode')) searchCriteria.qrcode = formData.get('search_qrcode');
 
     try {
-        let query = supabase.from('vehicles').select('*');
+        let query = supabaseClient.from('vehicles').select('*');
 
         // Aplicar filtros
         Object.keys(searchCriteria).forEach(key => {
@@ -150,7 +146,7 @@ function displaySearchResults(vehicles) {
 // Ver detalhes do veículo
 async function viewVehicleDetails(vehicleId) {
     try {
-        const { data: vehicle, error } = await supabase
+        const { data: vehicle, error } = await supabaseClient
             .from('vehicles')
             .select('*')
             .eq('id', vehicleId)
@@ -208,7 +204,7 @@ function logoutUser() {
 // Função para exportar dados para XLSX
 async function exportToXLSX() {
     try {
-        const { data: vehicles, error } = await supabase
+        const { data: vehicles, error } = await supabaseClient
             .from('vehicles')
             .select('*')
             .order('created_at', { ascending: false });
@@ -289,7 +285,7 @@ async function importFromXLSX(file) {
                     };
 
                     // Verificar se veículo já existe pela placa
-                    const { data: existingVehicles, error: checkError } = await supabase
+                    const { data: existingVehicles, error: checkError } = await supabaseClient
                         .from('vehicles')
                         .select('id')
                         .eq('placa', vehicleData.placa);
@@ -306,7 +302,7 @@ async function importFromXLSX(file) {
                         delete updateData.created_by; // Não atualizar created_by
                         delete updateData.created_at; // Não atualizar created_at
 
-                        const { error: updateError } = await supabase
+                        const { error: updateError } = await supabaseClient
                             .from('vehicles')
                             .update(updateData)
                             .eq('placa', vehicleData.placa);
@@ -318,7 +314,7 @@ async function importFromXLSX(file) {
                         vehicleData.created_by = currentUser.id;
                         vehicleData.created_at = new Date().toISOString();
 
-                        const { error: insertError } = await supabase
+                        const { error: insertError } = await supabaseClient
                             .from('vehicles')
                             .insert([vehicleData]);
 
