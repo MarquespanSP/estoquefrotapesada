@@ -1,5 +1,18 @@
 // Script JavaScript para gerenciamento de fornecedores
 
+// Função para escapar caracteres HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '<',
+        '>': '>',
+        '"': '"',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
 // Variável para controlar modo de edição
 let editingSupplierId = null;
 
@@ -375,16 +388,16 @@ async function viewSupplierDetails(supplierId) {
                 <div class="detail-section">
                     <h4>Informações Gerais</h4>
                     <div class="detail-row">
-                        <strong>Nome:</strong> <span>${supplier.name}</span>
+                        <strong>Nome:</strong> <span>${escapeHtml(supplier.name)}</span>
                     </div>
                     <div class="detail-row">
-                        <strong>Contato:</strong> <span>${supplier.contact_info || 'Não informado'}</span>
+                        <strong>Contato:</strong> <span>${escapeHtml(supplier.contact_info || 'Não informado')}</span>
                     </div>
                     <div class="detail-row">
                         <strong>Cadastrado em:</strong> <span>${new Date(supplier.created_at).toLocaleString('pt-BR')}</span>
                     </div>
                     <div class="detail-row">
-                        <strong>Cadastrado por:</strong> <span>${supplier.created_by}</span>
+                        <strong>Cadastrado por:</strong> <span>${escapeHtml(supplier.created_by)}</span>
                     </div>
                     <div class="detail-row">
                         <strong>Status:</strong> <span class="${supplier.is_active ? 'status-active' : 'status-inactive'}">${supplier.is_active ? 'Ativo' : 'Inativo'}</span>
@@ -398,7 +411,7 @@ async function viewSupplierDetails(supplierId) {
                             ${pieces.map(piece => `
                                 <div class="piece-item">
                                     <div class="piece-info">
-                                        <strong>${piece.code} - ${piece.name.replace(/'/g, "\\'")}</strong>
+                                        <strong>${escapeHtml(piece.code)} - ${escapeHtml(piece.name)}</strong>
                                     </div>
                                 </div>
                             `).join('')}
@@ -407,8 +420,8 @@ async function viewSupplierDetails(supplierId) {
                 </div>
 
                 <div class="detail-actions">
-                    <button class="btn" onclick="editSupplier(${supplier.id})">Editar Fornecedor</button>
-                    <button class="btn btn-danger" onclick="deleteSupplier(${supplier.id}, '${supplier.name.replace(/'/g, "\\'")}')">Excluir Fornecedor</button>
+                    <button class="btn" onclick="editSupplier('${supplier.id}')">Editar Fornecedor</button>
+                    <button class="btn btn-danger" onclick="deleteSupplier('${supplier.id}', '${escapeHtml(supplier.name)}')">Excluir Fornecedor</button>
                 </div>
             </div>
         `;
