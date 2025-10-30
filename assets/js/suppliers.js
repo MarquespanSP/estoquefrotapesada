@@ -309,18 +309,24 @@ async function saveSupplier() {
         }
 
         // Atualizar fornecedor
-        const { error: updateError } = await supabaseClient
+        console.log('Tentando atualizar fornecedor ID:', editingSupplierId);
+        console.log('Dados para atualização:', { name: supplierName, contact_info: supplierContact || null });
+
+        const { data: updateData, error: updateError } = await supabaseClient
             .from('suppliers')
             .update({
                 name: supplierName,
                 contact_info: supplierContact || null
             })
-            .eq('id', editingSupplierId);
+            .eq('id', editingSupplierId)
+            .select();
 
         if (updateError) {
+            console.error('Erro no update:', updateError);
             throw new Error('Erro ao atualizar fornecedor: ' + updateError.message);
         }
 
+        console.log('Resultado do update:', updateData);
         console.log('Fornecedor atualizado com sucesso');
 
         // Fechar modal e mostrar mensagem de sucesso
