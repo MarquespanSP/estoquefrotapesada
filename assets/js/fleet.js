@@ -167,12 +167,135 @@ async function viewVehicleDetails(vehicleId) {
             <div class="detail-row"><strong>Status:</strong> ${vehicle.status}</div>
             <div class="detail-row"><strong>QR Code:</strong> ${vehicle.qrcode || 'N/A'}</div>
             <div class="detail-row"><strong>Data de Cadastro:</strong> ${new Date(vehicle.created_at).toLocaleDateString('pt-BR')}</div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="edit-vehicle-btn" onclick="editVehicleDetails(${vehicle.id})">Editar</button>
+            </div>
         `;
 
         document.getElementById('vehicle-details-modal').style.display = 'block';
     } catch (error) {
         console.error('Erro ao carregar detalhes do veículo:', error);
         showMessage('search-message', 'Erro ao carregar detalhes: ' + error.message, 'error');
+    }
+}
+
+// Editar detalhes do veículo
+async function editVehicleDetails(vehicleId) {
+    try {
+        const { data: vehicle, error } = await supabaseClient
+            .from('vehicles')
+            .select('*')
+            .eq('id', vehicleId)
+            .single();
+
+        if (error) throw error;
+
+        const detailsContent = document.getElementById('vehicle-details-content');
+        detailsContent.innerHTML = `
+            <form id="edit-vehicle-form">
+                <div class="form-group">
+                    <label for="edit_filial">Filial:</label>
+                    <input type="text" id="edit_filial" name="filial" value="${vehicle.filial}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_placa">Placa:</label>
+                    <input type="text" id="edit_placa" name="placa" value="${vehicle.placa}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_chassi">Chassi:</label>
+                    <input type="text" id="edit_chassi" name="chassi" value="${vehicle.chassi}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_marca">Marca:</label>
+                    <input type="text" id="edit_marca" name="marca" value="${vehicle.marca}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_modelo">Modelo:</label>
+                    <input type="text" id="edit_modelo" name="modelo" value="${vehicle.modelo}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_frota">Frota:</label>
+                    <input type="text" id="edit_frota" name="frota" value="${vehicle.frota}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_grupo">Grupo:</label>
+                    <input type="text" id="edit_grupo" name="grupo" value="${vehicle.grupo}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_ano_fabricacao">Ano de Fabricação:</label>
+                    <input type="number" id="edit_ano_fabricacao" name="ano_fabricacao" value="${vehicle.ano_fabricacao}" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_status">Status:</label>
+                    <select id="edit_status" name="status" required>
+                        <option value="Ativo" ${vehicle.status === 'Ativo' ? 'selected' : ''}>Ativo</option>
+                        <option value="Inativo" ${vehicle.status === 'Inativo' ? 'selected' : ''}>Inativo</option>
+                        <option value="Manutenção" ${vehicle.status === 'Manutenção' ? 'selected' : ''}>Manutenção</option>
+                        <option value="Vendido" ${vehicle.status === 'Vendido' ? 'selected' : ''}>Vendido</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit_qrcode">QR Code:</label>
+                    <input type="text" id="edit_qrcode" name="qrcode" value="${vehicle.qrcode || ''}">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="viewVehicleDetails(${vehicle.id})">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        `;
+
+        // Adicionar event listener para o formulário de edição
+        document.getElementById('edit-vehicle-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await saveVehicleChanges(vehicleId);
+        });
+
+    } catch (error) {
+        console.error('Erro ao carregar detalhes para edição:', error);
+        showMessage('search-message', 'Erro ao carregar detalhes para edição: ' + error.message, 'error');
+    }
+}
+
+// Salvar alterações do veículo
+async function saveVehicleChanges(vehicleId) {
+    try {
+        const formData = new FormData(document.getElementById('edit-vehicle-form'));
+        const vehicleData = {
+            filial: formData.get('filial'),
+            placa: formData.get('placa'),
+            chassi: formData.get('chassi'),
+            marca: formData.get('marca'),
+            modelo: formData.get('modelo'),
+            frota: formData.get('frota'),
+            grupo: formData.get('grupo'),
+            ano_fabricacao: parseInt(formData.get('ano_fabricacao')),
+            status: formData.get('status'),
+            qrcode: formData.get('qrcode'),
+            updated_at: new Date().toISOString()
+        };
+
+        const { error } = await supabaseClient
+            .from('vehicles')
+            .update(vehicleData)
+            .eq('id', vehicleId);
+
+        if (error) throw error;
+
+        showMessage('search-message', 'Veículo atualizado com sucesso!', 'success');
+
+        // Fechar modal e atualizar resultados da busca
+        document.getElementById('vehicle-details-modal').style.display = 'none';
+
+        // Re-executar a busca atual para atualizar a tabela
+        const searchForm = document.getElementById('search-vehicle-form');
+        if (searchForm) {
+            searchForm.dispatchEvent(new Event('submit'));
+        }
+
+    } catch (error) {
+        console.error('Erro ao salvar alterações:', error);
+        showMessage('search-message', 'Erro ao salvar alterações: ' + error.message, 'error');
     }
 }
 
