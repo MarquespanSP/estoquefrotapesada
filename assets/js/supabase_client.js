@@ -7,3 +7,20 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Exportar para uso em outros arquivos
 window.supabaseClient = supabaseClient;
+
+// Função para obter o token JWT atual (se disponível)
+function getAuthToken() {
+    try {
+        const session = localStorage.getItem('userSession');
+        if (session) {
+            const sessionData = JSON.parse(session);
+            // Para este projeto, estamos usando autenticação customizada
+            // O token JWT seria necessário se usássemos auth do Supabase
+            // Por enquanto, retornamos null pois usamos localStorage
+            return null;
+        }
+    } catch (error) {
+        console.error('Erro ao obter token de autenticação:', error);
+    }
+    return null;
+}
