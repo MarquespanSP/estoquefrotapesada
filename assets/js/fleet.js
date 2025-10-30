@@ -285,29 +285,39 @@ async function importFromXLSX(file) {
                         ano_fabricacao: parseInt(row['Ano de Fabricação'] || row['ano_fabricacao'] || row['Ano de Fabricacao']),
                         status: row['Status'] || row['status'],
                         qrcode: row['QR Code'] || row['qrcode'] || row['QRCode'] || '',
-                        created_by: currentUser.id,
                         updated_at: new Date().toISOString()
                     };
 
                     // Verificar se veículo já existe pela placa
-                    const { data: existingVehicle } = await supabase
+                    const { data: existingVehicles, error: checkError } = await supabase
                         .from('vehicles')
                         .select('id')
-                        .eq('placa', vehicleData.placa)
-                        .single();
+                        .eq('placa', vehicleData.placa);
 
-                    if (existingVehicle) {
-                        // Atualizar veículo existente
+                    if (checkError) {
+                        console.error('Erro ao verificar veículo existente:', checkError);
+                        errors++;
+                        continue;
+                    }
+
+                    if (existingVehicles && existingVehicles.length > 0) {
+                        // Atualizar veículo existente (não atualizar campos de criação)
+                        const updateData = { ...vehicleData };
+                        delete updateData.created_by; // Não atualizar created_by
+                        delete updateData.created_at; // Não atualizar created_at
+
                         const { error: updateError } = await supabase
                             .from('vehicles')
-                            .update(vehicleData)
+                            .update(updateData)
                             .eq('placa', vehicleData.placa);
 
                         if (updateError) throw updateError;
                         updated++;
                     } else {
                         // Inserir novo veículo
+                        vehicleData.created_by = currentUser.id;
                         vehicleData.created_at = new Date().toISOString();
+
                         const { error: insertError } = await supabase
                             .from('vehicles')
                             .insert([vehicleData]);
