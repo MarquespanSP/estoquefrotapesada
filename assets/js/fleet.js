@@ -248,103 +248,289 @@ async function exportToXLSX() {
     }
 }
 
+// Função para mostrar barra de progresso da importação
+function showImportProgress() {
+    const progressModal = document.createElement('div');
+    progressModal.id = 'import-progress-modal';
+    progressModal.className = 'modal';
+    progressModal.style.display = 'block';
+    progressModal.innerHTML = `
+        <div class="modal-content progress-modal">
+            <div class="modal-header">
+                <h3>Importando Veículos...</h3>
+            </div>
+            <div class="modal-body">
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="progress-text">Preparando importação...</div>
+                </div>
+                <div class="progress-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Processados:</span>
+                        <span class="stat-value" id="processed-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Importados:</span>
+                        <span class="stat-value" id="imported-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Atualizados:</span>
+                        <span class="stat-value" id="updated-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Erros:</span>
+                        <span class="stat-value" id="errors-count">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-import-btn">Cancelar</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(progressModal);
+
+    // Adicionar estilos CSS para a barra de progresso
+    const style = document.createElement('style');
+    style.textContent = `
+        .progress-modal {
+            max-width: 500px;
+        }
+        .progress-container {
+            margin: 20px 0;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2c3e50, #3498db);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        .progress-text {
+            text-align: center;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 2px;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+    `;
+    document.head.appendChild(style);
+
+    return progressModal;
+}
+
+// Função para atualizar barra de progresso
+function updateImportProgress(processed, total, imported, updated, errors, currentItem = null) {
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const processedCount = document.getElementById('processed-count');
+    const importedCount = document.getElementById('imported-count');
+    const updatedCount = document.getElementById('updated-count');
+    const errorsCount = document.getElementById('errors-count');
+
+    if (progressFill && progressText && processedCount && importedCount && updatedCount && errorsCount) {
+        const percentage = total > 0 ? Math.round((processed / total) * 100) : 0;
+        progressFill.style.width = `${percentage}%`;
+        progressText.textContent = currentItem ?
+            `Processando: ${currentItem} (${processed}/${total})` :
+            `Importando... ${percentage}% concluído`;
+
+        processedCount.textContent = processed;
+        importedCount.textContent = imported;
+        updatedCount.textContent = updated;
+        errorsCount.textContent = errors;
+    }
+}
+
+// Função para remover modal de progresso
+function removeImportProgress() {
+    const modal = document.getElementById('import-progress-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
 // Função para importar dados do XLSX
 async function importFromXLSX(file) {
+    let progressModal = null;
+    let isCancelled = false;
+
     try {
+        // Mostrar barra de progresso
+        progressModal = showImportProgress();
+
+        // Configurar botão de cancelar
+        const cancelBtn = document.getElementById('cancel-import-btn');
+        cancelBtn.addEventListener('click', () => {
+            isCancelled = true;
+            removeImportProgress();
+            showMessage('search-message', 'Importação cancelada pelo usuário.', 'warning');
+        });
+
         const reader = new FileReader();
         reader.onload = async function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
 
-            // Pegar primeira planilha
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
+                // Pegar primeira planilha
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
 
-            // Converter para JSON
-            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                // Converter para JSON
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-            let imported = 0;
-            let updated = 0;
-            let errors = 0;
+                if (jsonData.length === 0) {
+                    removeImportProgress();
+                    showMessage('search-message', 'Arquivo XLSX não contém dados válidos.', 'error');
+                    return;
+                }
 
-            for (const row of jsonData) {
-                try {
-                    // Mapear colunas do XLSX para campos do banco
-                    // Suportando tanto os nomes originais quanto variações
-                    const vehicleData = {
-                        filial: row['Filial'] || row['filial'] || row['FILIAL'],
-                        placa: row['Placa'] || row['placa'] || row['PLACA'],
-                        chassi: row['Chassi'] || row['chassi'] || row['CHASSI'],
-                        marca: row['Marca'] || row['marca'] || row['MARCA'],
-                        modelo: row['Modelo'] || row['modelo'] || row['MODELO'],
-                        frota: row['Frota'] || row['frota'] || row['FROTA'] || 'Frota Padrão',
-                        grupo: row['Grupo'] || row['grupo'] || row['GRUPO'] || 'Grupo Padrão',
-                        ano_fabricacao: parseInt(row['Ano de Fabricação'] || row['ano_fabricacao'] || row['Ano de Fabricacao'] || row['ANO DE FABRICAÇÃO'] || row['ANO_FABRICACAO'] || 2020),
-                        status: row['Status'] || row['status'] || row['STATUS'] || 'Ativo',
-                        qrcode: row['QR Code'] || row['qrcode'] || row['QRCode'] || row['QR CODE'] || row['QRCODE'] || '',
-                        updated_at: new Date().toISOString()
-                    };
+                let imported = 0;
+                let updated = 0;
+                let errors = 0;
+                const total = jsonData.length;
 
-                    // Validar campos obrigatórios
-                    if (!vehicleData.filial || !vehicleData.placa || !vehicleData.chassi ||
-                        !vehicleData.marca || !vehicleData.modelo || !vehicleData.frota ||
-                        !vehicleData.grupo || isNaN(vehicleData.ano_fabricacao) || !vehicleData.status) {
-                        console.error('Linha com dados incompletos:', row);
-                        errors++;
-                        continue;
-                    }
+                updateImportProgress(0, total, imported, updated, errors, 'Iniciando...');
 
-                    // Verificar se veículo já existe pela placa
-                    const { data: existingVehicles, error: checkError } = await supabaseClient
-                        .from('vehicles')
-                        .select('id')
-                        .eq('placa', vehicleData.placa);
+                for (let i = 0; i < jsonData.length; i++) {
+                    if (isCancelled) break;
 
-                    if (checkError) {
-                        console.error('Erro ao verificar veículo existente:', checkError);
-                        errors++;
-                        continue;
-                    }
+                    const row = jsonData[i];
+                    const currentItem = row['Placa'] || row['placa'] || `Linha ${i + 1}`;
 
-                    if (existingVehicles && existingVehicles.length > 0) {
-                        // Atualizar veículo existente (não atualizar campos de criação)
-                        const updateData = { ...vehicleData };
-                        delete updateData.created_by; // Não atualizar created_by
-                        delete updateData.created_at; // Não atualizar created_at
+                    try {
+                        updateImportProgress(i, total, imported, updated, errors, currentItem);
 
-                        const { error: updateError } = await supabaseClient
+                        // Mapear colunas do XLSX para campos do banco
+                        // Suportando tanto os nomes originais quanto variações
+                        const vehicleData = {
+                            filial: row['Filial'] || row['filial'] || row['FILIAL'],
+                            placa: row['Placa'] || row['placa'] || row['PLACA'],
+                            chassi: row['Chassi'] || row['chassi'] || row['CHASSI'],
+                            marca: row['Marca'] || row['marca'] || row['MARCA'],
+                            modelo: row['Modelo'] || row['modelo'] || row['MODELO'],
+                            frota: row['Frota'] || row['frota'] || row['FROTA'] || 'Frota Padrão',
+                            grupo: row['Grupo'] || row['grupo'] || row['GRUPO'] || 'Grupo Padrão',
+                            ano_fabricacao: parseInt(row['Ano de Fabricação'] || row['ano_fabricacao'] || row['Ano de Fabricacao'] || row['ANO DE FABRICAÇÃO'] || row['ANO_FABRICACAO'] || 2020),
+                            status: row['Status'] || row['status'] || row['STATUS'] || 'Ativo',
+                            qrcode: row['QR Code'] || row['qrcode'] || row['QRCode'] || row['QR CODE'] || row['QRCODE'] || '',
+                            updated_at: new Date().toISOString()
+                        };
+
+                        // Validar campos obrigatórios
+                        if (!vehicleData.filial || !vehicleData.placa || !vehicleData.chassi ||
+                            !vehicleData.marca || !vehicleData.modelo || !vehicleData.frota ||
+                            !vehicleData.grupo || isNaN(vehicleData.ano_fabricacao) || !vehicleData.status) {
+                            console.error('Linha com dados incompletos:', row);
+                            errors++;
+                            continue;
+                        }
+
+                        // Verificar se veículo já existe pela placa
+                        const { data: existingVehicles, error: checkError } = await supabaseClient
                             .from('vehicles')
-                            .update(updateData)
+                            .select('id')
                             .eq('placa', vehicleData.placa);
 
-                        if (updateError) throw updateError;
-                        updated++;
-                    } else {
-                        // Inserir novo veículo
-                        vehicleData.created_by = currentUser.id;
-                        vehicleData.created_at = new Date().toISOString();
+                        if (checkError) {
+                            console.error('Erro ao verificar veículo existente:', checkError);
+                            errors++;
+                            continue;
+                        }
 
-                        const { error: insertError } = await supabaseClient
-                            .from('vehicles')
-                            .insert([vehicleData]);
+                        if (existingVehicles && existingVehicles.length > 0) {
+                            // Atualizar veículo existente (não atualizar campos de criação)
+                            const updateData = { ...vehicleData };
+                            delete updateData.created_by; // Não atualizar created_by
+                            delete updateData.created_at; // Não atualizar created_at
 
-                        if (insertError) throw insertError;
-                        imported++;
+                            const { error: updateError } = await supabaseClient
+                                .from('vehicles')
+                                .update(updateData)
+                                .eq('placa', vehicleData.placa);
+
+                            if (updateError) throw updateError;
+                            updated++;
+                        } else {
+                            // Inserir novo veículo
+                            vehicleData.created_by = currentUser.id;
+                            vehicleData.created_at = new Date().toISOString();
+
+                            const { error: insertError } = await supabaseClient
+                                .from('vehicles')
+                                .insert([vehicleData]);
+
+                            if (insertError) throw insertError;
+                            imported++;
+                        }
+
+                        // Pequena pausa para não sobrecarregar a UI
+                        await new Promise(resolve => setTimeout(resolve, 10));
+
+                    } catch (rowError) {
+                        console.error('Erro na linha:', row, rowError);
+                        errors++;
                     }
-                } catch (rowError) {
-                    console.error('Erro na linha:', row, rowError);
-                    errors++;
                 }
-            }
 
-            showMessage('search-message',
-                `Importação concluída! Importados: ${imported}, Atualizados: ${updated}, Erros: ${errors}`,
-                errors > 0 ? 'warning' : 'success'
-            );
+                // Finalizar progresso
+                updateImportProgress(total, total, imported, updated, errors, 'Concluído!');
+
+                // Aguardar um pouco para mostrar o resultado final
+                setTimeout(() => {
+                    removeImportProgress();
+
+                    if (!isCancelled) {
+                        showMessage('search-message',
+                            `Importação concluída! Importados: ${imported}, Atualizados: ${updated}, Erros: ${errors}`,
+                            errors > 0 ? 'warning' : 'success'
+                        );
+                    }
+                }, 1000);
+
+            } catch (error) {
+                removeImportProgress();
+                console.error('Erro ao processar XLSX:', error);
+                showMessage('search-message', 'Erro ao processar arquivo XLSX: ' + error.message, 'error');
+            }
         };
 
         reader.readAsArrayBuffer(file);
     } catch (error) {
+        if (progressModal) removeImportProgress();
         console.error('Erro ao importar XLSX:', error);
         showMessage('search-message', 'Erro ao importar arquivo: ' + error.message, 'error');
     }
