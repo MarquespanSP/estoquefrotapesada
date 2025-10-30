@@ -28,18 +28,6 @@
     <main class="container">
         <div class="dashboard">
             <div class="dashboard-header">
-                <div class="header-actions">
-                    <a href="modelo_frota.xlsx" download class="btn btn-secondary" title="Baixar modelo XLSX">
-                        📋 Modelo XLSX
-                    </a>
-                    <button id="export-xlsx-btn" class="btn btn-secondary" title="Exportar dados para XLSX">
-                        📊 Exportar XLSX
-                    </button>
-                    <button id="import-xlsx-btn" class="btn btn-secondary" title="Importar dados do XLSX">
-                        📤 Importar XLSX
-                    </button>
-                    <input type="file" id="import-file" accept=".xlsx,.xls" style="display: none;">
-                </div>
                 <h1>Controle de Frota</h1>
                 <div id="welcome-message" class="welcome-message">Bem-vindo!</div>
                 <div id="user-role" class="user-role">Nível de Acesso: Carregando...</div>
@@ -60,7 +48,21 @@
 
             <!-- Seção de Cadastro de Veículo -->
             <div id="vehicle-registration-section" class="form-container" style="display: none;">
-                <h2>Cadastro de Veículo</h2>
+                <div class="form-header">
+                    <h2>Cadastro de Veículo</h2>
+                    <div class="form-actions">
+                        <a href="modelo_frota.xlsx" download class="btn btn-small btn-secondary" title="Baixar modelo XLSX">
+                            📋 Modelo XLSX
+                        </a>
+                        <button id="export-xlsx-btn" class="btn btn-small btn-secondary" title="Exportar dados para XLSX">
+                            📊 Exportar XLSX
+                        </button>
+                        <button id="import-xlsx-btn" class="btn btn-small btn-secondary" title="Importar dados do XLSX">
+                            📤 Importar XLSX
+                        </button>
+                        <input type="file" id="import-file" accept=".xlsx,.xls" style="display: none;">
+                    </div>
+                </div>
                 <form id="vehicle-form">
                     <div class="form-group">
                         <label for="filial">Filial:</label>
