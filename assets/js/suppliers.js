@@ -206,6 +206,12 @@ async function loadSuppliers() {
 
             // Ações
             const actionsCell = document.createElement('td');
+            const viewBtn = document.createElement('button');
+            viewBtn.className = 'btn btn-small';
+            viewBtn.textContent = 'Ver Detalhes';
+            viewBtn.onclick = () => viewSupplierDetails(supplier.id);
+            actionsCell.appendChild(viewBtn);
+
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'btn btn-small btn-danger';
             deleteBtn.textContent = 'Excluir';
@@ -352,6 +358,88 @@ function showEditMessage(message, type = 'info') {
         messageDiv.className = `message ${type}`;
         messageDiv.style.display = 'block';
     }
+}
+
+// Função para ver detalhes do fornecedor
+async function viewSupplierDetails(supplierId) {
+    try {
+        // Buscar dados completos do fornecedor
+        const { data: supplier, error } = await supabaseClient
+            .from('suppliers')
+            .select('id, name, contact_info, created_at, created_by, is_active')
+            .eq('id', supplierId)
+            .single();
+
+        if (error) throw error;
+
+        // Buscar peças associadas ao fornecedor
+        const { data: pieces, error: piecesError } = await supabaseClient
+            .from('pieces')
+            .select('id, name, quantity, min_stock, supplier_id')
+            .eq('supplier_id', supplierId)
+            .eq('is_active', true);
+
+        if (piecesError) throw piecesError;
+
+        // Construir conteúdo do modal
+        const detailsContent = document.getElementById('supplier-details-content');
+        detailsContent.innerHTML = `
+            <div class="supplier-details">
+                <div class="detail-section">
+                    <h4>Informações Gerais</h4>
+                    <div class="detail-row">
+                        <strong>Nome:</strong> <span>${supplier.name}</span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Contato:</strong> <span>${supplier.contact_info || 'Não informado'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Cadastrado em:</strong> <span>${new Date(supplier.created_at).toLocaleString('pt-BR')}</span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Cadastrado por:</strong> <span>${supplier.created_by}</span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Status:</strong> <span class="${supplier.is_active ? 'status-active' : 'status-inactive'}">${supplier.is_active ? 'Ativo' : 'Inativo'}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>Peças Fornecidas (${pieces ? pieces.length : 0})</h4>
+                    ${pieces && pieces.length > 0 ? `
+                        <div class="pieces-list">
+                            ${pieces.map(piece => `
+                                <div class="piece-item">
+                                    <div class="piece-info">
+                                        <strong>${piece.name}</strong>
+                                        <span>Quantidade: ${piece.quantity} | Estoque mínimo: ${piece.min_stock}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '<p class="no-pieces">Nenhuma peça associada a este fornecedor.</p>'}
+                </div>
+
+                <div class="detail-actions">
+                    <button class="btn" onclick="editSupplier(${supplier.id})">Editar Fornecedor</button>
+                    <button class="btn btn-danger" onclick="deleteSupplier(${supplier.id}, '${supplier.name}')">Excluir Fornecedor</button>
+                </div>
+            </div>
+        `;
+
+        // Mostrar modal
+        document.getElementById('supplier-details-modal').style.display = 'block';
+
+    } catch (error) {
+        console.error('Erro ao carregar detalhes do fornecedor:', error);
+        showMessage('Erro ao carregar detalhes do fornecedor.', 'error');
+    }
+}
+
+// Função para fechar o modal de detalhes
+function closeDetailsModal() {
+    document.getElementById('supplier-details-modal').style.display = 'none';
+    document.getElementById('supplier-details-content').innerHTML = '';
 }
 
 function resetForm() {
