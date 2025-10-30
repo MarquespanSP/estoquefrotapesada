@@ -308,26 +308,52 @@ async function saveSupplier() {
             throw new Error('Este nome de fornecedor já está sendo usado por outro fornecedor');
         }
 
+        // Obter usuário logado para atualizar campos de auditoria
+        const userSession = await getLoggedUser();
+        if (!userSession) {
+            throw new Error('Usuário não autenticado');
+        }
+
         // Atualizar fornecedor
         console.log('Tentando atualizar fornecedor ID:', editingSupplierId);
-        console.log('Dados para atualização:', { name: supplierName, contact_info: supplierContact || null });
+        console.log('Dados para atualização:', { name: supplierName, contact_info: supplierContact || null, created_by: userSession.username });
 
-        const { data: updateData, error: updateError } = await supabaseClient
+        const { error: updateError } = await supabaseClient
             .from('suppliers')
             .update({
                 name: supplierName,
-                contact_info: supplierContact || null
+                contact_info: supplierContact || null,
+                created_by: userSession.username,
+                created_at: new Date().toISOString()
             })
-            .eq('id', editingSupplierId)
-            .select();
+            .eq('id', editingSupplierId);
 
         if (updateError) {
             console.error('Erro no update:', updateError);
             throw new Error('Erro ao atualizar fornecedor: ' + updateError.message);
         }
 
-        console.log('Resultado do update:', updateData);
-        console.log('Fornecedor atualizado com sucesso');
+        console.log('Update executado sem erro, verificando se foi salvo...');
+
+        // Verificar se os dados foram realmente atualizados
+        const { data: verifyData, error: verifyError } = await supabaseClient
+            .from('suppliers')
+            .select('name, contact_info')
+            .eq('id', editingSupplierId)
+            .single();
+
+        if (verifyError) {
+            console.error('Erro ao verificar atualização:', verifyError);
+        } else {
+            console.log('Dados verificados após update:', verifyData);
+            if (verifyData.name === supplierName && verifyData.contact_info === (supplierContact || null)) {
+                console.log('✅ Dados foram atualizados corretamente no banco');
+            } else {
+                console.log('❌ Dados não foram atualizados corretamente');
+                console.log('Esperado:', { name: supplierName, contact_info: supplierContact || null });
+                console.log('Encontrado:', verifyData);
+            }
+        }
 
         // Fechar modal e mostrar mensagem de sucesso
         closeEditModal();
