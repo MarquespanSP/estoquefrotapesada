@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Controle de Frota - Estoque Frota Pesada</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="logo.png" alt="Logo Estoque Frota Pesada" style="height: 40px; margin-right: 10px;">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="stock_control.html">Controle de Estoque</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="#" onclick="logoutUser()">Sair</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <h1>Controle de Frota</h1>
+                <p>Gerencie o cadastro e localização de veículos da frota pesada.</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>🚛 Cadastrar Veículo</h3>
+                    <p>Adicione novos veículos à frota com todas as informações necessárias.</p>
+                    <a href="#" class="btn" onclick="showVehicleRegistration()">Cadastrar</a>
+                </div>
+                <div class="card">
+                    <h3>🔍 Buscar Veículo</h3>
+                    <p>Localize veículos da frota utilizando filtros inteligentes.</p>
+                    <a href="#" class="btn" onclick="showVehicleSearch()">Buscar</a>
+                </div>
+            </div>
+
+            <!-- Seção de Cadastro de Veículo -->
+            <div id="vehicle-registration-section" class="form-container" style="display: none;">
+                <h2>Cadastro de Veículo</h2>
+                <form id="vehicle-form">
+                    <div class="form-group">
+                        <label for="filial">Filial:</label>
+                        <input type="text" id="filial" name="filial" required placeholder="Digite a filial" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="placa">Placa:</label>
+                        <input type="text" id="placa" name="placa" required placeholder="Digite a placa" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="chassi">Chassi:</label>
+                        <input type="text" id="chassi" name="chassi" required placeholder="Digite o chassi" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="marca">Marca:</label>
+                        <input type="text" id="marca" name="marca" required placeholder="Digite a marca" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="modelo">Modelo:</label>
+                        <input type="text" id="modelo" name="modelo" required placeholder="Digite o modelo" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="frota">Frota:</label>
+                        <input type="text" id="frota" name="frota" required placeholder="Digite a frota" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="grupo">Grupo:</label>
+                        <input type="text" id="grupo" name="grupo" required placeholder="Digite o grupo" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="ano_fabricacao">Ano de Fabricação:</label>
+                        <input type="number" id="ano_fabricacao" name="ano_fabricacao" required placeholder="Digite o ano" min="1900" max="2100" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status:</label>
+                        <select id="status" name="status" required>
+                            <option value="">Selecione o status</option>
+                            <option value="Ativo">Ativo</option>
+                            <option value="Inativo">Inativo</option>
+                            <option value="Manutenção">Manutenção</option>
+                            <option value="Vendido">Vendido</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="qrcode">QR Code:</label>
+                        <input type="text" id="qrcode" name="qrcode" placeholder="Digite ou escaneie o QR code" autocomplete="off">
+                        <button type="button" id="scan-qr-btn" class="btn btn-secondary" title="Escanear QR code" style="margin-top: 5px;">
+                            📷 Escanear
+                        </button>
+                    </div>
+                    <button type="submit">Cadastrar Veículo</button>
+                </form>
+                <div id="registration-message" class="message" style="display: none;"></div>
+            </div>
+
+            <!-- Seção de Busca de Veículo -->
+            <div id="vehicle-search-section" class="form-container" style="display: none;">
+                <h2>Buscar Veículo</h2>
+                <form id="search-vehicle-form">
+                    <div class="form-group">
+                        <label for="search_placa">Placa:</label>
+                        <input type="text" id="search_placa" name="search_placa" placeholder="Digite a placa" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="search_chassi">Chassi:</label>
+                        <input type="text" id="search_chassi" name="search_chassi" placeholder="Digite o chassi" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="search_marca">Marca:</label>
+                        <input type="text" id="search_marca" name="search_marca" placeholder="Digite a marca" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="search_modelo">Modelo:</label>
+                        <input type="text" id="search_modelo" name="search_modelo" placeholder="Digite o modelo" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="search_frota">Frota:</label>
+                        <input type="text" id="search_frota" name="search_frota" placeholder="Digite a frota" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="search_status">Status:</label>
+                        <select id="search_status" name="search_status">
+                            <option value="">Todos os status</option>
+                            <option value="Ativo">Ativo</option>
+                            <option value="Inativo">Inativo</option>
+                            <option value="Manutenção">Manutenção</option>
+                            <option value="Vendido">Vendido</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="search_qrcode">QR Code:</label>
+                        <input type="text" id="search_qrcode" name="search_qrcode" placeholder="Digite o QR code" autocomplete="off">
+                        <button type="button" id="scan-search-qr-btn" class="btn btn-secondary" title="Escanear QR code" style="margin-top: 5px;">
+                            📷 Escanear
+                        </button>
+                    </div>
+                    <button type="submit">Buscar</button>
+                </form>
+                <div id="search-message" class="message" style="display: none;"></div>
+
+                <div id="search-results" class="search-results" style="display: none;">
+                    <h3>Resultados da Busca</h3>
+                    <div class="search-results-table">
+                        <table class="results-table" id="vehicle-results-table">
+                            <thead>
+                                <tr>
+                                    <th>Placa</th>
+                                    <th>Chassi</th>
+                                    <th>Marca</th>
+                                    <th>Modelo</th>
+                                    <th>Frota</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vehicle-results-body">
+                                <!-- Resultados serão inseridos aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para detalhes do veículo -->
+    <div id="vehicle-details-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalhes do Veículo</h3>
+                <button class="close">&times;</button>
+            </div>
+            <div class="modal-body" id="vehicle-details-content">
+                <!-- Detalhes do veículo serão exibidos aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- ZXing para leitura de QR Code -->
+    <script src="https://unpkg.com/@zxing/library@0.19.3/umd/index.min.js"></script>
+    <!-- Script de autenticação -->
+    <script src="assets/js/auth.js"></script>
+    <!-- Script de controle de frota -->
+    <script src="assets/js/fleet.js"></script>
+</body>
+</html>
