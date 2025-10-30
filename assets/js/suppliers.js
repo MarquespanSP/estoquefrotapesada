@@ -408,7 +408,7 @@ async function viewSupplierDetails(supplierId) {
 
                 <div class="detail-actions">
                     <button class="btn" onclick="editSupplier(${supplier.id})">Editar Fornecedor</button>
-                    <button class="btn btn-danger" onclick="deleteSupplier(${supplier.id}, '${supplier.name}')">Excluir Fornecedor</button>
+                    <button class="btn btn-danger" onclick="deleteSupplier(${supplier.id}, '${supplier.name.replace(/'/g, "\\'")}')">Excluir Fornecedor</button>
                 </div>
             </div>
         `;
