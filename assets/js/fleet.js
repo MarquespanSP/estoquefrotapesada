@@ -218,23 +218,25 @@ async function exportToXLSX() {
         // Criar workbook
         const wb = XLSX.utils.book_new();
 
-        // Preparar dados para exportação
-        const exportData = vehicles.map(vehicle => ({
-            'Filial': vehicle.filial,
-            'Placa': vehicle.placa,
-            'Chassi': vehicle.chassi,
-            'Marca': vehicle.marca,
-            'Modelo': vehicle.modelo,
-            'Frota': vehicle.frota,
-            'Grupo': vehicle.grupo,
-            'Ano de Fabricação': vehicle.ano_fabricacao,
-            'Status': vehicle.status,
-            'QR Code': vehicle.qrcode || '',
-            'Data de Cadastro': new Date(vehicle.created_at).toLocaleDateString('pt-BR')
-        }));
+        // Preparar dados para exportação com cabeçalho
+        const exportData = [
+            ['Filial', 'Placa', 'Chassi', 'Marca', 'Modelo', 'Frota', 'Grupo', 'Ano de Fabricação', 'Status', 'QR Code'],
+            ...vehicles.map(vehicle => [
+                vehicle.filial,
+                vehicle.placa,
+                vehicle.chassi,
+                vehicle.marca,
+                vehicle.modelo,
+                vehicle.frota,
+                vehicle.grupo,
+                vehicle.ano_fabricacao,
+                vehicle.status,
+                vehicle.qrcode || ''
+            ])
+        ];
 
         // Criar worksheet
-        const ws = XLSX.utils.json_to_sheet(exportData);
+        const ws = XLSX.utils.aoa_to_sheet(exportData);
 
         // Adicionar worksheet ao workbook
         XLSX.utils.book_append_sheet(wb, ws, 'Veículos');
@@ -243,10 +245,10 @@ async function exportToXLSX() {
         const fileName = `frota_${new Date().toISOString().split('T')[0]}.xlsx`;
         XLSX.writeFile(wb, fileName);
 
-        showMessage('search-message', 'Arquivo XLSX exportado com sucesso!', 'success');
+        showMessage('registration-message', 'Arquivo XLSX exportado com sucesso!', 'success');
     } catch (error) {
         console.error('Erro ao exportar XLSX:', error);
-        showMessage('search-message', 'Erro ao exportar arquivo: ' + error.message, 'error');
+        showMessage('registration-message', 'Erro ao exportar arquivo: ' + error.message, 'error');
     }
 }
 
