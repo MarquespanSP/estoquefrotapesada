@@ -272,6 +272,13 @@ button:disabled {
     font-family: inherit;
 }
 
+#supplier_contact,
+#edit_supplier_contact {
+    width: 443px !important;
+    height: 109px !important;
+    resize: none;
+}
+
 .modal .btn {
     width: 100%;
     padding: 14px;
