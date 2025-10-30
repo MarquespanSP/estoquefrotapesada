@@ -398,7 +398,7 @@ async function viewSupplierDetails(supplierId) {
                             ${pieces.map(piece => `
                                 <div class="piece-item">
                                     <div class="piece-info">
-                                        <strong>${piece.code} - ${piece.name}</strong>
+                                        <strong>${piece.code} - ${piece.name.replace(/'/g, "\\'")}</strong>
                                     </div>
                                 </div>
                             `).join('')}
