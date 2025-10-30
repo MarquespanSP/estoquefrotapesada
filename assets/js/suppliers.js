@@ -314,6 +314,21 @@ async function saveSupplier() {
             throw new Error('Usuário não autenticado');
         }
 
+        // Verificar se o fornecedor existe antes do update
+        console.log('Verificando se fornecedor existe ID:', editingSupplierId);
+        const { data: existingSupplier, error: checkError2 } = await supabaseClient
+            .from('suppliers')
+            .select('id, name, contact_info')
+            .eq('id', editingSupplierId)
+            .single();
+
+        console.log('Fornecedor encontrado para update:', existingSupplier);
+        console.log('Erro na verificação:', checkError2);
+
+        if (checkError2 || !existingSupplier) {
+            throw new Error('Fornecedor não encontrado para atualização');
+        }
+
         // Atualizar fornecedor (apenas campos editáveis, não os de auditoria)
         console.log('Tentando atualizar fornecedor ID:', editingSupplierId);
         console.log('Dados para atualização:', { name: supplierName, contact_info: supplierContact || null });
