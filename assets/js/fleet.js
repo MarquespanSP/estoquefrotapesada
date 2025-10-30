@@ -4,15 +4,15 @@ let currentUser = null;
 
 // Inicialização do Supabase
 async function initSupabase() {
-    const SUPABASE_URL = 'https://your-project-url.supabase.co';
-    const SUPABASE_ANON_KEY = 'your-anon-key';
+    const SUPABASE_URL = 'https://iutwaspoegvbebaemghy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1dHdhc3BvZWd2YmViYWVtZ2h5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzMDg0MzIsImV4cCI6MjA3Njg4NDQzMn0.orZgrWLHhps1wpKbeP_fKLeF0Xjog-ECYdIkxC_LcCc';
 
     supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
 // Verificar autenticação
 async function checkAuth() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getLoggedUser();
     currentUser = user;
 
     if (!user) {
@@ -200,8 +200,8 @@ function showMessage(elementId, message, type) {
 }
 
 // Logout
-async function logoutUser() {
-    await supabase.auth.signOut();
+function logoutUser() {
+    localStorage.removeItem('userSession');
     window.location.href = 'index.html';
 }
 
