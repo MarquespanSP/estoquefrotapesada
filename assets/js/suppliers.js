@@ -357,7 +357,7 @@ async function viewSupplierDetails(supplierId) {
         // Buscar peças associadas ao fornecedor
         const { data: pieces, error: piecesError } = await supabaseClient
             .from('pieces')
-            .select('id, name, quantity, min_stock, supplier_id')
+            .select('id, code, name, supplier_id')
             .eq('supplier_id', supplierId)
             .eq('is_active', true);
 
@@ -398,8 +398,7 @@ async function viewSupplierDetails(supplierId) {
                             ${pieces.map(piece => `
                                 <div class="piece-item">
                                     <div class="piece-info">
-                                        <strong>${piece.name}</strong>
-                                        <span>Quantidade: ${piece.quantity} | Estoque mínimo: ${piece.min_stock}</span>
+                                        <strong>${piece.code} - ${piece.name}</strong>
                                     </div>
                                 </div>
                             `).join('')}
