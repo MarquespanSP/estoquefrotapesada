@@ -28,6 +28,18 @@
     <main class="container">
         <div class="dashboard">
             <div class="dashboard-header">
+                <div class="header-actions">
+                    <a href="modelo_frota.xlsx" download class="btn btn-secondary" title="Baixar modelo XLSX">
+                        📋 Modelo XLSX
+                    </a>
+                    <button id="export-xlsx-btn" class="btn btn-secondary" title="Exportar dados para XLSX">
+                        📊 Exportar XLSX
+                    </button>
+                    <button id="import-xlsx-btn" class="btn btn-secondary" title="Importar dados do XLSX">
+                        📤 Importar XLSX
+                    </button>
+                    <input type="file" id="import-file" accept=".xlsx,.xls" style="display: none;">
+                </div>
                 <h1>Controle de Frota</h1>
                 <div id="welcome-message" class="welcome-message">Bem-vindo!</div>
                 <div id="user-role" class="user-role">Nível de Acesso: Carregando...</div>
@@ -94,7 +106,9 @@
                             <option value="Ativo">Ativo</option>
                             <option value="Inativo">Inativo</option>
                             <option value="Manutenção">Manutenção</option>
-                            <option value="Vendido">Vendido</option>
+                            <option value="Batido">Batido</option>
+                            <option value="Internado">Internado</option>
+                            <option value="Rezerva">Rezerva</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -194,6 +208,8 @@
 
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SheetJS para manipulação de XLSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- ZXing para leitura de QR Code -->
     <script src="https://unpkg.com/@zxing/library@0.19.3/umd/index.min.js"></script>
     <!-- Script de autenticação -->

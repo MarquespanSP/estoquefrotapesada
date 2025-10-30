@@ -1,0 +1,4 @@
+Filial,Placa,Chassi,Marca,Modelo,Frota,Grupo,Ano de Fabricação,Status,QR Code
+Minas Gerais,ABC-1234,9BWZZZ377VT004251,Mercedes-Benz,Actros 2651,001,Pesado,2020,Ativo,QR001
+São Paulo,DEF-5678,8AWZZZ377VT004252,Volvo,FH 540,002,Pesado,2019,Manutenção,QR002
+Paraná,GHI-9012,7BWZZZ377VT004253,Scania,R 450,003,Pesado,2021,Ativo,QR003

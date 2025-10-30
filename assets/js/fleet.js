@@ -205,6 +205,149 @@ function logoutUser() {
     window.location.href = 'index.html';
 }
 
+// Função para exportar dados para XLSX
+async function exportToXLSX() {
+    try {
+        const { data: vehicles, error } = await supabase
+            .from('vehicles')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Criar workbook
+        const wb = XLSX.utils.book_new();
+
+        // Preparar dados para exportação
+        const exportData = vehicles.map(vehicle => ({
+            'Filial': vehicle.filial,
+            'Placa': vehicle.placa,
+            'Chassi': vehicle.chassi,
+            'Marca': vehicle.marca,
+            'Modelo': vehicle.modelo,
+            'Frota': vehicle.frota,
+            'Grupo': vehicle.grupo,
+            'Ano de Fabricação': vehicle.ano_fabricacao,
+            'Status': vehicle.status,
+            'QR Code': vehicle.qrcode || '',
+            'Data de Cadastro': new Date(vehicle.created_at).toLocaleDateString('pt-BR')
+        }));
+
+        // Criar worksheet
+        const ws = XLSX.utils.json_to_sheet(exportData);
+
+        // Adicionar worksheet ao workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Veículos');
+
+        // Gerar arquivo e fazer download
+        const fileName = `frota_${new Date().toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+
+        showMessage('search-message', 'Arquivo XLSX exportado com sucesso!', 'success');
+    } catch (error) {
+        console.error('Erro ao exportar XLSX:', error);
+        showMessage('search-message', 'Erro ao exportar arquivo: ' + error.message, 'error');
+    }
+}
+
+// Função para importar dados do XLSX
+async function importFromXLSX(file) {
+    try {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            // Pegar primeira planilha
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+
+            // Converter para JSON
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+            let imported = 0;
+            let updated = 0;
+            let errors = 0;
+
+            for (const row of jsonData) {
+                try {
+                    // Mapear colunas do XLSX para campos do banco
+                    const vehicleData = {
+                        filial: row['Filial'] || row['filial'],
+                        placa: row['Placa'] || row['placa'],
+                        chassi: row['Chassi'] || row['chassi'],
+                        marca: row['Marca'] || row['marca'],
+                        modelo: row['Modelo'] || row['modelo'],
+                        frota: row['Frota'] || row['frota'],
+                        grupo: row['Grupo'] || row['grupo'],
+                        ano_fabricacao: parseInt(row['Ano de Fabricação'] || row['ano_fabricacao'] || row['Ano de Fabricacao']),
+                        status: row['Status'] || row['status'],
+                        qrcode: row['QR Code'] || row['qrcode'] || row['QRCode'] || '',
+                        created_by: currentUser.id,
+                        updated_at: new Date().toISOString()
+                    };
+
+                    // Verificar se veículo já existe pela placa
+                    const { data: existingVehicle } = await supabase
+                        .from('vehicles')
+                        .select('id')
+                        .eq('placa', vehicleData.placa)
+                        .single();
+
+                    if (existingVehicle) {
+                        // Atualizar veículo existente
+                        const { error: updateError } = await supabase
+                            .from('vehicles')
+                            .update(vehicleData)
+                            .eq('placa', vehicleData.placa);
+
+                        if (updateError) throw updateError;
+                        updated++;
+                    } else {
+                        // Inserir novo veículo
+                        vehicleData.created_at = new Date().toISOString();
+                        const { error: insertError } = await supabase
+                            .from('vehicles')
+                            .insert([vehicleData]);
+
+                        if (insertError) throw insertError;
+                        imported++;
+                    }
+                } catch (rowError) {
+                    console.error('Erro na linha:', row, rowError);
+                    errors++;
+                }
+            }
+
+            showMessage('search-message',
+                `Importação concluída! Importados: ${imported}, Atualizados: ${updated}, Erros: ${errors}`,
+                errors > 0 ? 'warning' : 'success'
+            );
+        };
+
+        reader.readAsArrayBuffer(file);
+    } catch (error) {
+        console.error('Erro ao importar XLSX:', error);
+        showMessage('search-message', 'Erro ao importar arquivo: ' + error.message, 'error');
+    }
+}
+
+// Event listeners para botões de import/export
+document.getElementById('export-xlsx-btn').addEventListener('click', exportToXLSX);
+
+document.getElementById('import-xlsx-btn').addEventListener('click', function() {
+    document.getElementById('import-file').click();
+});
+
+document.getElementById('import-file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        importFromXLSX(file);
+        // Limpar input para permitir reimportar o mesmo arquivo
+        e.target.value = '';
+    }
+});
+
 // Inicialização
 document.addEventListener('DOMContentLoaded', async function() {
     await initSupabase();
