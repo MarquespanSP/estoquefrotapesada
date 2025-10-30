@@ -363,6 +363,8 @@ function showEditMessage(message, type = 'info') {
 // Função para ver detalhes do fornecedor
 async function viewSupplierDetails(supplierId) {
     try {
+        console.log('Buscando detalhes do fornecedor ID:', supplierId);
+
         // Buscar dados completos do fornecedor
         const { data: supplier, error } = await supabaseClient
             .from('suppliers')
@@ -370,7 +372,12 @@ async function viewSupplierDetails(supplierId) {
             .eq('id', supplierId)
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Erro ao buscar fornecedor:', error);
+            throw error;
+        }
+
+        console.log('Fornecedor encontrado:', supplier);
 
         // Buscar peças associadas ao fornecedor
         const { data: pieces, error: piecesError } = await supabaseClient
@@ -379,7 +386,12 @@ async function viewSupplierDetails(supplierId) {
             .eq('supplier_id', supplierId)
             .eq('is_active', true);
 
-        if (piecesError) throw piecesError;
+        if (piecesError) {
+            console.error('Erro ao buscar peças:', piecesError);
+            throw piecesError;
+        }
+
+        console.log('Peças encontradas:', pieces);
 
         // Construir conteúdo do modal
         const detailsContent = document.getElementById('supplier-details-content');
