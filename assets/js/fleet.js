@@ -270,19 +270,29 @@ async function importFromXLSX(file) {
             for (const row of jsonData) {
                 try {
                     // Mapear colunas do XLSX para campos do banco
+                    // Suportando tanto os nomes originais quanto variações
                     const vehicleData = {
-                        filial: row['Filial'] || row['filial'],
-                        placa: row['Placa'] || row['placa'],
-                        chassi: row['Chassi'] || row['chassi'],
-                        marca: row['Marca'] || row['marca'],
-                        modelo: row['Modelo'] || row['modelo'],
-                        frota: row['Frota'] || row['frota'],
-                        grupo: row['Grupo'] || row['grupo'],
-                        ano_fabricacao: parseInt(row['Ano de Fabricação'] || row['ano_fabricacao'] || row['Ano de Fabricacao']),
-                        status: row['Status'] || row['status'],
-                        qrcode: row['QR Code'] || row['qrcode'] || row['QRCode'] || '',
+                        filial: row['Filial'] || row['filial'] || row['FILIAL'],
+                        placa: row['Placa'] || row['placa'] || row['PLACA'],
+                        chassi: row['Chassi'] || row['chassi'] || row['CHASSI'],
+                        marca: row['Marca'] || row['marca'] || row['MARCA'],
+                        modelo: row['Modelo'] || row['modelo'] || row['MODELO'],
+                        frota: row['Frota'] || row['frota'] || row['FROTA'],
+                        grupo: row['Grupo'] || row['grupo'] || row['GRUPO'],
+                        ano_fabricacao: parseInt(row['Ano de Fabricação'] || row['ano_fabricacao'] || row['Ano de Fabricacao'] || row['ANO DE FABRICAÇÃO'] || row['ANO_FABRICACAO']),
+                        status: row['Status'] || row['status'] || row['STATUS'],
+                        qrcode: row['QR Code'] || row['qrcode'] || row['QRCode'] || row['QR CODE'] || row['QRCODE'] || '',
                         updated_at: new Date().toISOString()
                     };
+
+                    // Validar campos obrigatórios
+                    if (!vehicleData.filial || !vehicleData.placa || !vehicleData.chassi ||
+                        !vehicleData.marca || !vehicleData.modelo || !vehicleData.frota ||
+                        !vehicleData.grupo || isNaN(vehicleData.ano_fabricacao) || !vehicleData.status) {
+                        console.error('Linha com dados incompletos:', row);
+                        errors++;
+                        continue;
+                    }
 
                     // Verificar se veículo já existe pela placa
                     const { data: existingVehicles, error: checkError } = await supabaseClient
