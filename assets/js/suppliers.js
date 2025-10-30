@@ -12,11 +12,23 @@ function closeEditModal() {
 }
 
 // Carregar fornecedores quando a página carregar
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    await checkAuth();
     loadSuppliers();
     setupFormValidation();
     loadUserInfo();
 });
+
+// Verificar autenticação (igual ao fleet.js)
+async function checkAuth() {
+    const user = await getLoggedUser();
+    currentUser = user;
+
+    if (!user) {
+        window.location.href = 'index.html';
+        return;
+    }
+}
 
 async function loadUserInfo() {
     try {
