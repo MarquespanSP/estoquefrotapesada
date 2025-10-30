@@ -314,19 +314,21 @@ async function saveSupplier() {
             throw new Error('Usuário não autenticado');
         }
 
-        // Atualizar fornecedor
+        // Atualizar fornecedor (apenas campos editáveis, não os de auditoria)
         console.log('Tentando atualizar fornecedor ID:', editingSupplierId);
-        console.log('Dados para atualização:', { name: supplierName, contact_info: supplierContact || null, created_by: userSession.username });
+        console.log('Dados para atualização:', { name: supplierName, contact_info: supplierContact || null });
 
-        const { error: updateError } = await supabaseClient
+        const { data: updateResult, error: updateError } = await supabaseClient
             .from('suppliers')
             .update({
                 name: supplierName,
-                contact_info: supplierContact || null,
-                created_by: userSession.username,
-                created_at: new Date().toISOString()
+                contact_info: supplierContact || null
             })
-            .eq('id', editingSupplierId);
+            .eq('id', editingSupplierId)
+            .select();
+
+        console.log('Resultado direto do update:', updateResult);
+        console.log('Erro do update:', updateError);
 
         if (updateError) {
             console.error('Erro no update:', updateError);
