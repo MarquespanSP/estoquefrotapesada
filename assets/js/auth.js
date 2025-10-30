@@ -107,6 +107,19 @@ async function getLoggedUser() {
     return await checkUser();
 }
 
+// Função para verificar se o usuário está logado antes de navegar
+function checkLoginBeforeNavigate(href) {
+    const sessionData = localStorage.getItem('userSession');
+    if (!sessionData) {
+        console.log('Nenhum usuário logado, redirecionando para login...');
+        window.location.href = 'index.html';
+        return false;
+    }
+    // Se logado, permitir navegação
+    window.location.href = href;
+    return true;
+}
+
 // Função para mostrar mensagens
 function showMessage(message, type = 'info') {
     const messageDiv = document.getElementById('message');

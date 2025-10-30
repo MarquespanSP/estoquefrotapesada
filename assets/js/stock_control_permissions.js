@@ -47,18 +47,7 @@ async function applyStockControlPermissions() {
     }
 }
 
-// Função para verificar se o usuário está logado antes de navegar
-function checkLoginBeforeNavigate(href) {
-    const sessionData = localStorage.getItem('userSession');
-    if (!sessionData) {
-        console.log('Nenhum usuário logado, redirecionando para login...');
-        window.location.href = 'index.html';
-        return false;
-    }
-    // Se logado, permitir navegação
-    window.location.href = href;
-    return true;
-}
+// Função removida - agora está em auth.js
 
 // Função para permissões de Operador no controle de estoque
 function applyOperatorStockPermissions() {
