@@ -636,14 +636,13 @@ async function performImportWithProgress(suppliersToImport, initialErrors) {
     };
 
     try {
-        // Verificar duplicatas existentes
+        // Verificar duplicatas existentes (incluindo inativos)
         progressText.textContent = 'Verificando duplicatas existentes...';
         const supplierNames = suppliersToImport.map(s => s.name);
         const { data: existingSuppliers, error: checkError } = await supabaseClient
             .from('suppliers')
             .select('name')
-            .in('name', supplierNames)
-            .eq('is_active', true);
+            .in('name', supplierNames);
 
         if (checkError) {
             throw new Error('Erro ao verificar fornecedores existentes: ' + checkError.message);
