@@ -228,8 +228,21 @@
 
 .large-modal .modal-content {
     max-width: 800px;
-    max-height: 80vh;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.large-modal .modal-header {
+    flex-shrink: 0;
+}
+
+.large-modal .modal-body {
+    flex: 1;
     overflow-y: auto;
+    padding: 20px;
+    max-height: calc(90vh - 80px); /* Subtrai altura do header */
 }
 
 /* Responsividade para manutenção */
@@ -290,5 +303,19 @@
     .large-modal .modal-content {
         max-width: 95vw;
         max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .large-modal .modal-header {
+        flex-shrink: 0;
+    }
+
+    .large-modal .modal-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        max-height: calc(90vh - 80px);
     }
 }
