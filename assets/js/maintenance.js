@@ -308,10 +308,10 @@ function removeFile(index) {
     displaySelectedFiles(uploadedFiles);
 }
 
-// Cadastrar peça (abrir modal)
-document.getElementById('register-piece-btn').addEventListener('click', function() {
-    document.getElementById('piece-registration-modal').style.display = 'block';
-});
+// Abrir página de peças de manutenção
+function openMaintenancePiecesPage() {
+    window.location.href = 'maintenance_pieces.html';
+}
 
 // Salvar manutenção
 document.getElementById('save-maintenance-btn').addEventListener('click', async function() {

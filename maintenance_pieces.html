@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Peças de Manutenção - Estoque Frota Pesada</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="logo.png" alt="Logo Estoque Frota Pesada" style="height: 40px; margin-right: 10px;">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="stock_control.html">Controle de Estoque</a></li>
+                    <li><a href="maintenance.html">Manutenção</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="#" onclick="logoutUser()">Sair</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="form-container">
+            <div class="form-header">
+                <h2>Cadastro de Peças de Manutenção</h2>
+                <div class="import-export-buttons">
+                    <button type="button" id="export-btn" class="btn btn-secondary">📊 Exportar Peças</button>
+                    <button type="button" id="import-btn" class="btn btn-secondary">📤 Importar Peças</button>
+                    <button type="button" id="download-template-btn" class="btn btn-info">📋 Baixar Modelo</button>
+                </div>
+            </div>
+
+            <form id="maintenance-piece-form">
+                <div class="form-group">
+                    <label for="filial">Filial:</label>
+                    <select id="filial" name="filial" required>
+                        <option value="">Selecione a filial</option>
+                        <option value="Mato Grosso do Sul">MS</option>
+                        <option value="Minas Gerais">MG</option>
+                        <option value="Paraná">PR</option>
+                        <option value="São Paulo">SP</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="nome">Nome:</label>
+                    <input type="text" id="nome" name="nome" required placeholder="Digite o nome da peça" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="valor_unitario">Valor Unitário:</label>
+                    <input type="number" id="valor_unitario" name="valor_unitario" step="0.01" min="0" required placeholder="0,00">
+                </div>
+                <div class="form-group">
+                    <label for="tipo">Tipo:</label>
+                    <select id="tipo" name="tipo" required>
+                        <option value="">Selecione o tipo</option>
+                        <option value="Manutenção">Manutenção</option>
+                        <option value="Peças">Peças</option>
+                        <option value="Serviço">Serviço</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="status">Status:</label>
+                    <select id="status" name="status" required>
+                        <option value="ATIVO">ATIVO</option>
+                        <option value="INATIVO">INATIVO</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="descricao">Descrição:</label>
+                    <textarea id="descricao" name="descricao" rows="3" placeholder="Digite a descrição da peça"></textarea>
+                </div>
+                <button type="submit">Cadastrar Peça</button>
+            </form>
+            <div id="message" class="message" style="display: none;"></div>
+        </div>
+
+        <!-- Seção de busca -->
+        <div class="form-container">
+            <h2>Buscar Peças de Manutenção</h2>
+            <form id="search-form">
+                <div class="form-group">
+                    <label for="search_filial">Filial:</label>
+                    <select id="search_filial" name="search_filial">
+                        <option value="">Todas as filiais</option>
+                        <option value="Mato Grosso do Sul">MS</option>
+                        <option value="Minas Gerais">MG</option>
+                        <option value="Paraná">PR</option>
+                        <option value="São Paulo">SP</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="search_nome">Nome:</label>
+                    <input type="text" id="search_nome" name="search_nome" placeholder="Digite o nome" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="search_tipo">Tipo:</label>
+                    <select id="search_tipo" name="search_tipo">
+                        <option value="">Todos os tipos</option>
+                        <option value="Manutenção">Manutenção</option>
+                        <option value="Peças">Peças</option>
+                        <option value="Serviço">Serviço</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="search_status">Status:</label>
+                    <select id="search_status" name="search_status">
+                        <option value="">Todos os status</option>
+                        <option value="ATIVO">ATIVO</option>
+                        <option value="INATIVO">INATIVO</option>
+                    </select>
+                </div>
+                <button type="submit">Buscar</button>
+            </form>
+            <div id="search-message" class="message" style="display: none;"></div>
+
+            <div id="search-results" class="search-results" style="display: none;">
+                <h3>Resultados da Busca</h3>
+                <div class="search-results-table">
+                    <table class="results-table" id="pieces-results-table">
+                        <thead>
+                            <tr>
+                                <th>Filial</th>
+                                <th>Nome</th>
+                                <th>Valor Unitário</th>
+                                <th>Tipo</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pieces-results-body">
+                            <!-- Resultados serão inseridos aqui -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Cliente Supabase centralizado -->
+    <script src="assets/js/supabase_client.js"></script>
+    <!-- SheetJS para manipulação de Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Script de autenticação -->
+    <script src="assets/js/auth.js"></script>
+    <!-- Script de peças de manutenção -->
+    <script src="assets/js/maintenance_pieces.js"></script>
+</body>
+</html>
