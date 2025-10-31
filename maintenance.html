@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Controle de Manutenção - Estoque Frota Pesada</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="logo.png" alt="Logo Estoque Frota Pesada" style="height: 40px; margin-right: 10px;">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="stock_control.html">Controle de Estoque</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="#" onclick="logoutUser()">Sair</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <h1>Controle de Manutenção</h1>
+                <div id="welcome-message" class="welcome-message">Bem-vindo!</div>
+                <div id="user-role" class="user-role">Nível de Acesso: Carregando...</div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>🔧 Incluir Manutenção</h3>
+                    <p>Registrar nova manutenção com todos os detalhes necessários.</p>
+                    <a href="#" class="btn" onclick="showMaintenanceRegistration()">Incluir</a>
+                </div>
+                <div class="card">
+                    <h3>🔍 Buscar Manutenção</h3>
+                    <p>Localizar manutenções utilizando filtros inteligentes.</p>
+                    <a href="#" class="btn" onclick="showMaintenanceSearch()">Buscar</a>
+                </div>
+            </div>
+
+            <!-- Seção de Cadastro de Manutenção -->
+            <div id="maintenance-registration-section" class="form-container" style="display: none;">
+                <div class="form-header">
+                    <h2>Realizar Manutenção</h2>
+                </div>
+
+                <!-- Abas -->
+                <div class="tabs">
+                    <button class="tab-button active" onclick="showTab('cadastro')">Cadastro</button>
+                    <button class="tab-button" onclick="showTab('itens')">Itens</button>
+                    <button class="tab-button" onclick="showTab('upload')">Upload</button>
+                </div>
+
+                <!-- Conteúdo das Abas -->
+                <div id="cadastro-tab" class="tab-content active">
+                    <form id="maintenance-form">
+                        <div class="form-section">
+                            <h3>Proprietário</h3>
+                            <div class="form-group">
+                                <label for="filial">Filial:</label>
+                                <select id="filial" name="filial" required>
+                                    <option value="">Selecione a filial</option>
+                                    <option value="Mato Grosso do Sul">MS</option>
+                                    <option value="Minas Gerais">MG</option>
+                                    <option value="Paraná">PR</option>
+                                    <option value="São Paulo">SP</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="titulo">Título da Manutenção:</label>
+                                <input type="text" id="titulo" name="titulo" required placeholder="Digite o título da manutenção">
+                            </div>
+                            <div class="form-group">
+                                <label for="tipo_manutencao">Tipo de Manutenção:</label>
+                                <select id="tipo_manutencao" name="tipo_manutencao" required>
+                                    <option value="">Selecione o tipo</option>
+                                    <option value="Preventiva">Preventiva</option>
+                                    <option value="Corretiva">Corretiva</option>
+                                    <option value="Preditiva">Preditiva</option>
+                                    <option value="Emergencial">Emergencial</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="status">Status:</label>
+                                <select id="status" name="status" required>
+                                    <option value="FINALIZADO">FINALIZADO</option>
+                                    <option value="MANUTENÇÃO">MANUTENÇÃO</option>
+                                    <option value="ABERTO" selected>ABERTO</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Dados da Manutenção</h3>
+                            <div class="form-group">
+                                <label for="data_manutencao">Data:</label>
+                                <input type="date" id="data_manutencao" name="data_manutencao" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="veiculo_placa">Veículo (Placa):</label>
+                                <div class="vehicle-search-container">
+                                    <input type="text" id="veiculo_placa" name="veiculo_placa" required placeholder="Digite ou busque a placa" autocomplete="off">
+                                    <button type="button" id="search-vehicle-btn" class="btn btn-secondary" title="Buscar veículo">
+                                        🔍 Buscar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="hodometro">Hodômetro:</label>
+                                <input type="number" id="hodometro" name="hodometro" placeholder="Digite o hodômetro" min="0">
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Dados Fiscais</h3>
+                            <div class="form-group">
+                                <label for="fornecedor">Fornecedor:</label>
+                                <div class="supplier-search-container">
+                                    <select id="fornecedor" name="fornecedor">
+                                        <option value="">Selecione um fornecedor</option>
+                                    </select>
+                                    <button type="button" id="search-supplier-btn" class="btn btn-secondary" title="Buscar fornecedor">
+                                        🔍 Buscar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="nfe">NF-E:</label>
+                                <input type="text" id="nfe" name="nfe" placeholder="Digite a NF-E">
+                            </div>
+                            <div class="form-group">
+                                <label for="nfse">NFS-E:</label>
+                                <input type="text" id="nfse" name="nfse" placeholder="Digite a NFS-E">
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Outras Informações</h3>
+                            <div class="form-group">
+                                <label for="numero_os">Número da OS:</label>
+                                <input type="text" id="numero_os" name="numero_os" placeholder="Digite o número da OS">
+                            </div>
+                            <div class="form-group">
+                                <label for="descricao">Descrição:</label>
+                                <textarea id="descricao" name="descricao" rows="4" placeholder="Digite a descrição da manutenção"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="itens-tab" class="tab-content">
+                    <div class="items-section">
+                        <div class="items-header">
+                            <h3>Itens da Manutenção</h3>
+                            <button type="button" id="add-item-btn" class="btn btn-primary">+ Incluir Item</button>
+                            <button type="button" id="register-piece-btn" class="btn btn-secondary">Cadastrar Peça</button>
+                        </div>
+
+                        <div class="items-table-container">
+                            <table id="maintenance-items-table" class="items-table">
+                                <thead>
+                                    <tr>
+                                        <th>QTD</th>
+                                        <th>Itens/Peça</th>
+                                        <th>Valor Unitário</th>
+                                        <th>Total</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="maintenance-items-body">
+                                    <!-- Itens serão adicionados dinamicamente -->
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" style="text-align: right; font-weight: bold;">Total:</td>
+                                        <td id="total-value" style="font-weight: bold;">R$ 0,00</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="upload-tab" class="tab-content">
+                    <div class="upload-section">
+                        <h3>Anexar Documentos</h3>
+                        <div class="upload-container">
+                            <input type="file" id="file-upload" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display: none;">
+                            <button type="button" id="upload-btn" class="btn btn-primary">📎 Selecionar Arquivos</button>
+                            <div id="file-list" class="file-list">
+                                <!-- Arquivos selecionados aparecerão aqui -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="save-maintenance-btn" class="btn btn-primary">Salvar Manutenção</button>
+                    <button type="button" id="cancel-maintenance-btn" class="btn btn-secondary">Cancelar</button>
+                </div>
+
+                <div id="maintenance-message" class="message" style="display: none;"></div>
+            </div>
+
+            <!-- Seção de Busca de Manutenção -->
+            <div id="maintenance-search-section" class="form-container" style="display: none;">
+                <h2>Buscar Manutenção</h2>
+                <form id="search-maintenance-form">
+                    <div class="form-group">
+                        <label for="search_titulo">Título:</label>
+                        <input type="text" id="search_titulo" name="search_titulo" placeholder="Digite o título" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="search_veiculo">Veículo (Placa):</label>
+                        <input type="text" id="search_veiculo" name="search_veiculo" placeholder="Digite a placa" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="search_status">Status:</label>
+                        <select id="search_status" name="search_status">
+                            <option value="">Todos os status</option>
+                            <option value="ABERTO">ABERTO</option>
+                            <option value="MANUTENÇÃO">MANUTENÇÃO</option>
+                            <option value="FINALIZADO">FINALIZADO</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="search_data_inicio">Data Início:</label>
+                        <input type="date" id="search_data_inicio" name="search_data_inicio">
+                    </div>
+                    <div class="form-group">
+                        <label for="search_data_fim">Data Fim:</label>
+                        <input type="date" id="search_data_fim" name="search_data_fim">
+                    </div>
+                    <button type="submit">Buscar</button>
+                </form>
+                <div id="search-maintenance-message" class="message" style="display: none;"></div>
+
+                <div id="search-maintenance-results" class="search-results" style="display: none;">
+                    <h3>Resultados da Busca</h3>
+                    <div class="search-results-table">
+                        <table class="results-table" id="maintenance-results-table">
+                            <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Veículo</th>
+                                    <th>Data</th>
+                                    <th>Status</th>
+                                    <th>Total</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="maintenance-results-body">
+                                <!-- Resultados serão inseridos aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para buscar veículo -->
+    <div id="vehicle-search-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Buscar Veículo</h3>
+                <button class="close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="modal-vehicle-search-form">
+                    <div class="form-group">
+                        <label for="modal_search_placa">Placa:</label>
+                        <input type="text" id="modal_search_placa" name="modal_search_placa" placeholder="Digite a placa" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_search_marca">Marca:</label>
+                        <input type="text" id="modal_search_marca" name="modal_search_marca" placeholder="Digite a marca" autocomplete="off">
+                    </div>
+                    <button type="submit" class="btn">Buscar</button>
+                </form>
+                <div id="modal-vehicle-results" class="vehicle-results">
+                    <!-- Resultados aparecerão aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para buscar fornecedor -->
+    <div id="supplier-search-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Buscar Fornecedor</h3>
+                <button class="close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="modal-supplier-search-form">
+                    <div class="form-group">
+                        <label for="modal_search_supplier">Nome do Fornecedor:</label>
+                        <input type="text" id="modal_search_supplier" name="modal_search_supplier" placeholder="Digite o nome" autocomplete="off">
+                    </div>
+                    <button type="submit" class="btn">Buscar</button>
+                </form>
+                <div id="modal-supplier-results" class="supplier-results">
+                    <!-- Resultados aparecerão aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para cadastrar peça -->
+    <div id="piece-registration-modal" class="modal" style="display: none;">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3>Cadastrar Nova Peça</h3>
+                <button class="close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="piece-registration-iframe" src="piece_registration.html" width="100%" height="600" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Script do cliente Supabase -->
+    <script src="assets/js/supabase_client.js"></script>
+    <!-- SheetJS para manipulação de XLSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Script de autenticação -->
+    <script src="assets/js/auth.js"></script>
+    <!-- Script de controle de manutenção -->
+    <script src="assets/js/maintenance.js"></script>
+</body>
+</html>
