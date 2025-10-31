@@ -161,32 +161,61 @@
                     <div class="items-section">
                         <div class="items-header">
                             <h3>Itens da Manutenção</h3>
-                            <button type="button" id="add-item-btn" class="btn btn-primary">+ Incluir Item</button>
-                            <button type="button" id="register-piece-btn" class="btn btn-secondary" onclick="openMaintenancePiecesPage()">Cadastrar Peça</button>
+                        </div>
+
+                        <!-- Barra de Ferramentas -->
+                        <div class="items-toolbar">
+                            <div class="toolbar-left">
+                                <button type="button" id="add-item-btn" class="btn btn-primary btn-small">
+                                    <span class="btn-icon">+</span> Incluir Item
+                                </button>
+                                <button type="button" id="register-piece-btn" class="btn btn-secondary btn-small" onclick="openMaintenancePiecesPage()">
+                                    <span class="btn-icon">🔧</span> Cadastrar Peça
+                                </button>
+                            </div>
+                            <div class="toolbar-right">
+                                <div class="items-summary">
+                                    <span class="summary-label">Total de Itens:</span>
+                                    <span id="items-count" class="summary-value">0</span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="items-table-container">
                             <table id="maintenance-items-table" class="items-table">
                                 <thead>
                                     <tr>
-                                        <th>QTD</th>
-                                        <th>Itens/Peça</th>
-                                        <th>Valor Unitário</th>
-                                        <th>Total</th>
-                                        <th>Ações</th>
+                                        <th class="col-qtd">QTD</th>
+                                        <th class="col-item">Itens/Peça</th>
+                                        <th class="col-value">Valor Unitário</th>
+                                        <th class="col-total">Total</th>
+                                        <th class="col-actions">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody id="maintenance-items-body">
                                     <!-- Itens serão adicionados dinamicamente -->
                                 </tbody>
                                 <tfoot>
-                                    <tr>
-                                        <td colspan="3" style="text-align: right; font-weight: bold;">Total:</td>
-                                        <td id="total-value" style="font-weight: bold;">R$ 0,00</td>
-                                        <td></td>
+                                    <tr class="table-footer">
+                                        <td colspan="3" class="footer-label">
+                                            <strong>Total Geral:</strong>
+                                        </td>
+                                        <td id="total-value" class="footer-value">
+                                            <strong>R$ 0,00</strong>
+                                        </td>
+                                        <td class="footer-actions"></td>
                                     </tr>
                                 </tfoot>
                             </table>
+                        </div>
+
+                        <!-- Mensagem quando não há itens -->
+                        <div id="empty-items-message" class="empty-state">
+                            <div class="empty-state-icon">📦</div>
+                            <div class="empty-state-text">
+                                <h4>Nenhum item adicionado</h4>
+                                <p>Clique em "Incluir Item" para adicionar peças ou serviços à manutenção.</p>
+                            </div>
                         </div>
                     </div>
                 </div>

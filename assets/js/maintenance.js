@@ -110,15 +110,30 @@ function addMaintenanceItem() {
 
     tbody.appendChild(row);
     calculateTotal();
+    updateItemsCount();
 
     // Carregar peças iniciais para o datalist
     loadInitialPiecesForRow(row);
+
+    // Esconder mensagem de estado vazio se for o primeiro item
+    const emptyMessage = document.getElementById('empty-items-message');
+    if (tbody.children.length === 1) {
+        emptyMessage.style.display = 'none';
+    }
 }
 
 // Remover item da manutenção
 function removeMaintenanceItem(button) {
     button.closest('tr').remove();
     calculateTotal();
+    updateItemsCount();
+
+    // Mostrar mensagem de estado vazio se não houver itens
+    const tbody = document.getElementById('maintenance-items-body');
+    const emptyMessage = document.getElementById('empty-items-message');
+    if (tbody.children.length === 0) {
+        emptyMessage.style.display = 'block';
+    }
 }
 
 // Calcular total do item
@@ -226,6 +241,17 @@ function calculateTotal() {
     });
 
     document.getElementById('total-value').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+}
+
+// Função para atualizar contador de itens
+function updateItemsCount() {
+    const tbody = document.getElementById('maintenance-items-body');
+    const count = tbody.children.length;
+    const counterElement = document.getElementById('items-count');
+
+    if (counterElement) {
+        counterElement.textContent = count;
+    }
 }
 
 // Buscar veículo
@@ -546,6 +572,11 @@ function resetMaintenanceForm() {
     document.getElementById('file-list').innerHTML = '<p>Nenhum arquivo selecionado.</p>';
     setDefaultDate();
     showTab('cadastro');
+    updateItemsCount();
+
+    // Mostrar mensagem de estado vazio
+    const emptyMessage = document.getElementById('empty-items-message');
+    emptyMessage.style.display = 'block';
 }
 
 // Busca de manutenções
