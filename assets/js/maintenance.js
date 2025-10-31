@@ -422,7 +422,7 @@ async function saveMaintenance() {
             data_manutencao: formData.get('data_manutencao'),
             veiculo_placa: formData.get('veiculo_placa'),
             hodometro: formData.get('hodometro') ? parseInt(formData.get('hodometro')) : null,
-            fornecedor_id: formData.get('fornecedor') ? parseInt(formData.get('fornecedor')) : null,
+            fornecedor_id: formData.get('fornecedor') || null,
             nfe: formData.get('nfe'),
             nfse: formData.get('nfse'),
             numero_os: formData.get('numero_os'),

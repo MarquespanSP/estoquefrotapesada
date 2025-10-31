@@ -14,78 +14,23 @@ async function applyPermissions() {
         const userRole = user.role;
         console.log('Aplicando permissões para:', userRole);
 
-        // Esconder todos os cards inicialmente
+        // Iterar sobre todos os cards e verificar as permissões
         const allCards = document.querySelectorAll('.dashboard-grid .card');
         allCards.forEach(card => {
-            card.style.display = 'none';
+            const allowedRoles = card.dataset.role ? card.dataset.role.split(',').map(r => r.trim()) : [];
+            
+            if (allowedRoles.includes(userRole)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
         });
-
-        // Aplicar permissões baseado no nível de acesso
-        switch (userRole) {
-            case 'Operador':
-                applyOperatorPermissions();
-                break;
-            case 'Supervisor':
-                applySupervisorPermissions();
-                break;
-            case 'Diretoria':
-                applyDiretoriaPermissions();
-                break;
-            case 'Administrador':
-                applyAdminPermissions();
-                break;
-            default:
-                console.log('Nível de acesso não reconhecido:', userRole);
-                // Por padrão, mostrar apenas controle de estoque
-                applyOperatorPermissions();
-        }
 
     } catch (error) {
         console.error('Erro ao aplicar permissões:', error);
         // Em caso de erro, redirecionar para login
         window.location.href = 'index.html';
     }
-}
-
-// Função removida - agora está em auth.js
-
-// Função para permissões de Operador
-function applyOperatorPermissions() {
-    // Operador vê apenas o card "Controle de Estoque"
-    const stockControlCard = document.querySelector('.dashboard-grid .card:nth-child(1)');
-    if (stockControlCard) {
-        stockControlCard.style.display = 'block';
-    }
-}
-
-// Função para permissões de Supervisor
-function applySupervisorPermissions() {
-    // Supervisor vê apenas o card "Controle de Estoque"
-    const stockControlCard = document.querySelector('.dashboard-grid .card:nth-child(1)');
-    if (stockControlCard) {
-        stockControlCard.style.display = 'block';
-    }
-}
-
-// Função para permissões de Diretoria
-function applyDiretoriaPermissions() {
-    // Diretoria vê todos os cards exceto Usuários
-    applySupervisorPermissions();
-
-    // Mostrar card de Fornecedores para Diretoria
-    const suppliersCard = document.querySelector('.dashboard-grid .card:nth-child(4)');
-    if (suppliersCard) {
-        suppliersCard.style.display = 'block';
-    }
-}
-
-// Função para permissões de Administrador
-function applyAdminPermissions() {
-    // Administrador vê todos os cards
-    const allCards = document.querySelectorAll('.dashboard-grid .card');
-    allCards.forEach(card => {
-        card.style.display = 'block';
-    });
 }
 
 // Inicializar permissões quando DOM estiver carregado
