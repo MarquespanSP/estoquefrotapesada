@@ -61,6 +61,8 @@
     border-top: none;
     animation: slideIn 0.4s ease-out;
     position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 @keyframes slideIn {
@@ -98,5 +100,94 @@
     .tab-content {
         border-radius: 0 0 8px 8px;
         padding: 20px;
+        max-width: 100%;
+    }
+}
+
+/* Estilos para melhorar a largura do formulário */
+.form-section {
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #2e8b57;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+}
+
+/* Layout em grid para melhor aproveitamento do espaço */
+.form-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.form-section h3 {
+    grid-column: 1 / -1;
+    margin-bottom: 15px;
+    color: #2e8b57;
+    font-size: 18px;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 5px;
+}
+
+/* Ajustes para campos específicos */
+.vehicle-search-container,
+.supplier-search-container {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.vehicle-search-container input,
+.supplier-search-container select {
+    flex: 1;
+}
+
+.vehicle-search-container button,
+.supplier-search-container button {
+    white-space: nowrap;
+    padding: 12px 15px;
+}
+
+/* Responsividade para formulários */
+@media (max-width: 768px) {
+    .form-section {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .vehicle-search-container,
+    .supplier-search-container {
+        flex-direction: column;
+    }
+
+    .vehicle-search-container button,
+    .supplier-search-container button {
+        width: 100%;
     }
 }
