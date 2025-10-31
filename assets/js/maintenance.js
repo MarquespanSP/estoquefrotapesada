@@ -654,8 +654,166 @@ function displayMaintenanceSearchResults(maintenances) {
 
 // Ver detalhes da manutenção
 async function viewMaintenanceDetails(maintenanceId) {
-    // Implementar modal de detalhes da manutenção
-    console.log('Ver detalhes da manutenção:', maintenanceId);
+    try {
+        // Buscar dados da manutenção
+        const { data: maintenance, error: maintenanceError } = await supabaseClient
+            .from('maintenances')
+            .select(`
+                *,
+                vehicles!inner(placa, marca, modelo),
+                suppliers(name),
+                maintenance_items(*),
+                maintenance_uploads(*)
+            `)
+            .eq('id', maintenanceId)
+            .single();
+
+        if (maintenanceError) throw maintenanceError;
+
+        // Preencher modal com dados
+        const content = document.getElementById('maintenance-details-content');
+        content.innerHTML = generateMaintenanceDetailsHTML(maintenance);
+
+        // Mostrar modal
+        document.getElementById('maintenance-details-modal').style.display = 'block';
+
+    } catch (error) {
+        console.error('Erro ao carregar detalhes da manutenção:', error);
+        showMessage('search-maintenance-message', 'Erro ao carregar detalhes: ' + error.message, 'error');
+    }
+}
+
+// Gerar HTML para detalhes da manutenção
+function generateMaintenanceDetailsHTML(maintenance) {
+    const vehicle = maintenance.vehicles;
+    const supplier = maintenance.suppliers;
+
+    let html = `
+        <div class="maintenance-details">
+            <div class="details-section">
+                <h4>Informações Gerais</h4>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <label>Filial:</label>
+                        <span>${maintenance.filial}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Título:</label>
+                        <span>${maintenance.titulo}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Tipo:</label>
+                        <span>${maintenance.tipo_manutencao}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Status:</label>
+                        <span>${maintenance.status}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Data:</label>
+                        <span>${new Date(maintenance.data_manutencao).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Número OS:</label>
+                        <span>${maintenance.numero_os || 'N/A'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h4>Dados do Veículo</h4>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <label>Placa:</label>
+                        <span>${maintenance.veiculo_placa}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Marca/Modelo:</label>
+                        <span>${vehicle.marca} ${vehicle.modelo}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Hodômetro:</label>
+                        <span>${maintenance.hodometro ? maintenance.hodometro + ' km' : 'N/A'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h4>Dados Fiscais</h4>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <label>Fornecedor:</label>
+                        <span>${supplier ? supplier.name : 'N/A'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>NF-E:</label>
+                        <span>${maintenance.nfe || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>NFS-E:</label>
+                        <span>${maintenance.nfse || 'N/A'}</span>
+                    </div>
+                </div>
+            </div>
+
+            ${maintenance.descricao ? `
+            <div class="details-section">
+                <h4>Descrição</h4>
+                <p>${maintenance.descricao}</p>
+            </div>
+            ` : ''}
+
+            ${maintenance.maintenance_items && maintenance.maintenance_items.length > 0 ? `
+            <div class="details-section">
+                <h4>Itens da Manutenção</h4>
+                <table class="details-table">
+                    <thead>
+                        <tr>
+                            <th>QTD</th>
+                            <th>Item/Peça</th>
+                            <th>Valor Unitário</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${maintenance.maintenance_items.map(item => `
+                            <tr>
+                                <td>${item.qtd}</td>
+                                <td>${item.item_peca}</td>
+                                <td>R$ ${item.valor_unitario.toFixed(2).replace('.', ',')}</td>
+                                <td>R$ ${item.total.toFixed(2).replace('.', ',')}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3"><strong>Total Geral:</strong></td>
+                            <td><strong>R$ ${maintenance.total_valor.toFixed(2).replace('.', ',')}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            ` : ''}
+
+            ${maintenance.maintenance_uploads && maintenance.maintenance_uploads.length > 0 ? `
+            <div class="details-section">
+                <h4>Anexos</h4>
+                <div class="uploads-list">
+                    ${maintenance.maintenance_uploads.map(upload => `
+                        <div class="upload-item">
+                            <a href="${supabaseClient.storage.from('maintenance-uploads').getPublicUrl(upload.file_url).data.publicUrl}" target="_blank">
+                                ${upload.file_name}
+                            </a>
+                            <small>(${formatFileSize(upload.file_size)})</small>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
+        </div>
+    `;
+
+    return html;
 }
 
 // Fechar modais
