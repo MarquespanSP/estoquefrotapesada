@@ -93,14 +93,15 @@ function showTab(tabName) {
 // Adicionar item à manutenção
 function addMaintenanceItem() {
     const tbody = document.getElementById('maintenance-items-body');
+    const datalistId = `pieces-datalist-${Date.now()}`;
 
     const row = document.createElement('tr');
     row.className = 'maintenance-item-row';
     row.innerHTML = `
         <td><input type="number" class="item-qtd" value="1" min="1" onchange="calculateItemTotal(this)"></td>
         <td>
-            <input type="text" class="item-name" placeholder="Nome da peça/item" onchange="updateItemTotal(this)" oninput="searchMaintenancePieces(this)" autocomplete="off">
-            <datalist id="pieces-datalist-${Date.now()}"></datalist>
+            <input type="text" class="item-name" placeholder="Nome da peça/item" list="${datalistId}" onchange="updateItemTotal(this); handlePieceSelection(this)" oninput="searchMaintenancePieces(this)" autocomplete="off">
+            <datalist id="${datalistId}"></datalist>
         </td>
         <td><input type="number" class="item-value" step="0.01" min="0" placeholder="0,00" onchange="calculateItemTotal(this)"></td>
         <td class="item-total">R$ 0,00</td>
@@ -109,6 +110,9 @@ function addMaintenanceItem() {
 
     tbody.appendChild(row);
     calculateTotal();
+
+    // Carregar peças iniciais para o datalist
+    loadInitialPiecesForRow(row);
 }
 
 // Remover item da manutenção
@@ -131,6 +135,34 @@ function calculateItemTotal(element) {
 // Atualizar total (chamado quando nome muda)
 function updateItemTotal(element) {
     calculateItemTotal(element);
+}
+
+// Carregar peças iniciais para uma linha
+async function loadInitialPiecesForRow(row) {
+    try {
+        const { data: pieces, error } = await supabaseClient
+            .from('maintenance_pieces')
+            .select('nome, valor_unitario, tipo')
+            .eq('status', 'ATIVO')
+            .order('nome')
+            .limit(50);
+
+        if (error) throw error;
+
+        const datalist = row.querySelector('datalist');
+        datalist.innerHTML = '';
+
+        pieces.forEach(piece => {
+            const option = document.createElement('option');
+            option.value = piece.nome;
+            option.setAttribute('data-value', piece.valor_unitario);
+            option.setAttribute('data-type', piece.tipo);
+            datalist.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error('Erro ao carregar peças iniciais:', error);
+    }
 }
 
 // Buscar peças de manutenção para autocomplete
@@ -161,19 +193,24 @@ async function searchMaintenancePieces(inputElement) {
             datalist.appendChild(option);
         });
 
-        // Adicionar listener para quando uma opção for selecionada
-        inputElement.addEventListener('change', function() {
-            const selectedOption = Array.from(datalist.options).find(option => option.value === this.value);
-            if (selectedOption) {
-                const row = this.closest('tr');
-                const valueInput = row.querySelector('.item-value');
-                valueInput.value = parseFloat(selectedOption.getAttribute('data-value')).toFixed(2);
-                calculateItemTotal(valueInput);
-            }
-        });
-
     } catch (error) {
         console.error('Erro ao buscar peças:', error);
+    }
+}
+
+// Manipular seleção de peça
+function handlePieceSelection(inputElement) {
+    const selectedValue = inputElement.value.trim();
+    if (!selectedValue) return;
+
+    const datalist = inputElement.nextElementSibling;
+    const selectedOption = Array.from(datalist.options).find(option => option.value === selectedValue);
+
+    if (selectedOption) {
+        const row = inputElement.closest('tr');
+        const valueInput = row.querySelector('.item-value');
+        valueInput.value = parseFloat(selectedOption.getAttribute('data-value')).toFixed(2);
+        calculateItemTotal(valueInput);
     }
 }
 
