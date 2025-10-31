@@ -76,7 +76,10 @@
                     <label for="descricao">Descrição:</label>
                     <textarea id="descricao" name="descricao" rows="3" placeholder="Digite a descrição da peça"></textarea>
                 </div>
-                <button type="submit">Cadastrar Peça</button>
+                <div class="form-actions">
+                    <button type="submit">Cadastrar Peça</button>
+                    <button type="button" id="back-to-maintenance-btn" class="btn btn-secondary" onclick="goBackToMaintenance()">← Voltar para Manutenção</button>
+                </div>
             </form>
             <div id="message" class="message" style="display: none;"></div>
         </div>

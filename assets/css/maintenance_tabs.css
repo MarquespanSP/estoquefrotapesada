@@ -192,6 +192,58 @@
     }
 }
 
+/* Estilos para o botão de voltar */
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.form-actions button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-actions button[type="submit"] {
+    background-color: #2e8b57;
+    color: white;
+}
+
+.form-actions button[type="submit"]:hover {
+    background-color: #228b22;
+    transform: translateY(-2px);
+}
+
+.form-actions #back-to-maintenance-btn {
+    background-color: #6c757d;
+    color: white;
+    display: none; /* Inicialmente oculto */
+}
+
+.form-actions #back-to-maintenance-btn:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+}
+
+/* Responsividade para ações do formulário */
+@media (max-width: 768px) {
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+}
+
 /* Estilos para a tabela de itens da manutenção */
 .items-table-container {
     overflow-x: auto;

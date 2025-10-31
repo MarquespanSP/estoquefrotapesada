@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFormValidation();
     setupSearchForm();
     setupImportExportButtons();
+    checkReturnToMaintenance();
 });
 
 // Configurar validação do formulário
@@ -435,6 +436,43 @@ async function processImportData(rows) {
         console.error('Erro no processamento da importação:', error);
         showMessage('Erro na importação: ' + error.message, 'error');
     }
+}
+
+// Verificar se deve mostrar botão de voltar para manutenção
+function checkReturnToMaintenance() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromMaintenance = urlParams.get('from') === 'maintenance';
+
+    if (fromMaintenance) {
+        const backBtn = document.getElementById('back-to-maintenance-btn');
+        if (backBtn) {
+            backBtn.style.display = 'inline-block';
+        }
+    }
+}
+
+// Função para voltar para a página de manutenção
+function goBackToMaintenance() {
+    // Verificar se há dados não salvos
+    const form = document.getElementById('maintenance-piece-form');
+    const formData = new FormData(form);
+    let hasData = false;
+
+    for (let [key, value] of formData.entries()) {
+        if (value && value.trim() !== '') {
+            hasData = true;
+            break;
+        }
+    }
+
+    if (hasData) {
+        if (!confirm('Há dados não salvos no formulário. Deseja realmente voltar sem salvar?')) {
+            return;
+        }
+    }
+
+    // Voltar para a página de manutenção
+    window.location.href = 'maintenance.html';
 }
 
 // Função para mostrar mensagens
