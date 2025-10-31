@@ -191,3 +191,118 @@
         width: 100%;
     }
 }
+
+/* Estilos para a tabela de itens da manutenção */
+.items-table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    font-size: 14px;
+}
+
+.items-table th {
+    background: linear-gradient(135deg, #2e8b57 0%, #228b22 100%);
+    color: white;
+    padding: 15px 12px;
+    text-align: left;
+    font-weight: 600;
+    border: none;
+}
+
+.items-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
+}
+
+.items-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.items-table tfoot {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.items-table tfoot td {
+    border-top: 2px solid #2e8b57;
+    padding: 15px 12px;
+}
+
+/* Ajustes específicos para as colunas */
+.items-table th:nth-child(1),
+.items-table td:nth-child(1) {
+    width: 80px;
+    text-align: center;
+}
+
+.items-table th:nth-child(2),
+.items-table td:nth-child(2) {
+    min-width: 300px;
+}
+
+.items-table th:nth-child(3),
+.items-table td:nth-child(3) {
+    width: 150px;
+}
+
+.items-table th:nth-child(4),
+.items-table td:nth-child(4) {
+    width: 120px;
+    text-align: right;
+}
+
+.items-table th:nth-child(5),
+.items-table td:nth-child(5) {
+    width: 100px;
+    text-align: center;
+}
+
+/* Inputs na tabela */
+.items-table input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.items-table input:focus {
+    outline: none;
+    border-color: #2e8b57;
+    box-shadow: 0 0 0 2px rgba(46, 139, 87, 0.1);
+}
+
+.items-table input[type="number"] {
+    text-align: center;
+}
+
+/* Responsividade para a tabela */
+@media (max-width: 768px) {
+    .items-table-container {
+        margin: 10px -10px;
+    }
+
+    .items-table {
+        font-size: 12px;
+        min-width: 600px;
+    }
+
+    .items-table th,
+    .items-table td {
+        padding: 8px 6px;
+    }
+
+    .items-table th:nth-child(2),
+    .items-table td:nth-child(2) {
+        min-width: 200px;
+    }
+}
