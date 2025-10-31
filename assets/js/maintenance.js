@@ -98,7 +98,10 @@ function addMaintenanceItem() {
     row.className = 'maintenance-item-row';
     row.innerHTML = `
         <td><input type="number" class="item-qtd" value="1" min="1" onchange="calculateItemTotal(this)"></td>
-        <td><input type="text" class="item-name" placeholder="Nome da peça/item" onchange="updateItemTotal(this)"></td>
+        <td>
+            <input type="text" class="item-name" placeholder="Nome da peça/item" onchange="updateItemTotal(this)" oninput="searchMaintenancePieces(this)" autocomplete="off">
+            <datalist id="pieces-datalist-${Date.now()}"></datalist>
+        </td>
         <td><input type="number" class="item-value" step="0.01" min="0" placeholder="0,00" onchange="calculateItemTotal(this)"></td>
         <td class="item-total">R$ 0,00</td>
         <td><button type="button" class="btn btn-danger btn-small" onclick="removeMaintenanceItem(this)">-</button></td>
@@ -128,6 +131,50 @@ function calculateItemTotal(element) {
 // Atualizar total (chamado quando nome muda)
 function updateItemTotal(element) {
     calculateItemTotal(element);
+}
+
+// Buscar peças de manutenção para autocomplete
+async function searchMaintenancePieces(inputElement) {
+    const query = inputElement.value.trim();
+    if (query.length < 2) return;
+
+    try {
+        const { data: pieces, error } = await supabaseClient
+            .from('maintenance_pieces')
+            .select('nome, valor_unitario, tipo')
+            .ilike('nome', `%${query}%`)
+            .eq('status', 'ATIVO')
+            .limit(10);
+
+        if (error) throw error;
+
+        // Criar datalist para o input
+        const datalistId = inputElement.nextElementSibling.id;
+        const datalist = document.getElementById(datalistId);
+        datalist.innerHTML = '';
+
+        pieces.forEach(piece => {
+            const option = document.createElement('option');
+            option.value = piece.nome;
+            option.setAttribute('data-value', piece.valor_unitario);
+            option.setAttribute('data-type', piece.tipo);
+            datalist.appendChild(option);
+        });
+
+        // Adicionar listener para quando uma opção for selecionada
+        inputElement.addEventListener('change', function() {
+            const selectedOption = Array.from(datalist.options).find(option => option.value === this.value);
+            if (selectedOption) {
+                const row = this.closest('tr');
+                const valueInput = row.querySelector('.item-value');
+                valueInput.value = parseFloat(selectedOption.getAttribute('data-value')).toFixed(2);
+                calculateItemTotal(valueInput);
+            }
+        });
+
+    } catch (error) {
+        console.error('Erro ao buscar peças:', error);
+    }
 }
 
 // Calcular total geral
